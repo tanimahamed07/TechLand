@@ -31,12 +31,34 @@ interface CategoryTree {
   brands: string[];
 }
 
+// Temporary mock data - replace with API call later
+const categories = [
+  {
+    name: "Laptops",
+    subcategories: [
+      { name: "Gaming Laptops", brands: ["ASUS", "MSI", "Razer"] },
+      { name: "Business Laptops", brands: ["Dell", "HP", "Lenovo"] },
+    ],
+  },
+  {
+    name: "Smartphones",
+    subcategories: [
+      { name: "Android", brands: ["Samsung", "Google", "OnePlus"] },
+      { name: "iPhone", brands: ["Apple"] },
+    ],
+  },
+  {
+    name: "Accessories",
+    subcategories: [
+      { name: "Headphones", brands: ["Sony", "Bose", "JBL"] },
+      { name: "Chargers", brands: ["Anker", "Belkin"] },
+    ],
+  },
+];
 
 export function Navbar() {
   const [openMenu, setOpenMenu] = React.useState<string | null>(null);
   const { data: session, status } = useSession();
-
-
 
   const initials = React.useMemo(() => {
     const name = session?.user?.name ?? session?.user?.email ?? "User";
