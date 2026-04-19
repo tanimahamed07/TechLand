@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "./theme-toggle";
+import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 const categories = [
   {
@@ -70,87 +71,101 @@ export function Navbar() {
               3
             </Badge>
           </Button>
+          <Avatar>
+            <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+            <AvatarFallback>CN</AvatarFallback>
+            <AvatarBadge className="bg-green-400 dark:bg-green-800" />
+          </Avatar>
         </div>
       </div>
 
       {/* Navigation Menu */}
       <div className="border-t border-border">
         <div className="container mx-auto flex h-12 max-w-7xl items-center px-4">
-          <nav className="hidden items-center gap-8 md:flex">
-            <Link
-              href="/products"
-              className="text-sm font-bold hover:text-primary"
-            >
-              All Products
-            </Link>
-
-            {categories.map((category) => (
-              <div
-                key={category.name}
-                onMouseEnter={() => setOpenMenu(category.name)}
-                onMouseLeave={() => setOpenMenu(null)}
-                className="relative"
+          <nav className="hidden items-center gap-10 md:flex">
+            {" "}
+            {/* gap বাড়িয়ে 10 করা হয়েছে */}
+            <div className="flex items-center gap-5">
+              {" "}
+              {/* মেনু আইটেমগুলোকে আলাদা র‍্যাপার এ রাখা হয়েছে */}
+              <Link
+                href="/products"
+                className="text-sm font-bold hover:text-primary transition-colors"
               >
-                <DropdownMenu open={openMenu === category.name}>
-                  <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-1 text-sm font-bold text-foreground transition-colors hover:text-primary outline-none">
-                      {category.name}
-                    </button>
-                  </DropdownMenuTrigger>
+                All Products
+              </Link>
+              {categories.map((category, index) => (
+                <React.Fragment key={category.name}>
+                  {/* Vertical Line - প্রতিটি আইটেমের আগে একটি হালকা লাইন */}
+                  <div className="h-4 w-[2px] bg-border/70" />
 
-                  {category.subcategories.length > 0 && (
-                    <DropdownMenuContent
-                      className="min-w-[400px] p-6"
-                      align="start"
-                      // মাউস কন্টেন্ট এর ওপর থাকলেও যেন মেনু বন্ধ না হয়
-                      onMouseEnter={() => setOpenMenu(category.name)}
-                    >
-                      <div className="grid grid-cols-2 gap-8 divide-x divide-border">
-                        <div className="pr-4">
-                          <h4 className="mb-3 text-xs font-semibold uppercase text-muted-foreground">
-                            Categories
-                          </h4>
-                          <div className="space-y-2">
-                            {category.subcategories.map((sub) => (
-                              <Link
-                                key={sub.name}
-                                href={`/products?category=${category.name.toLowerCase()}&subcategory=${sub.name.toLowerCase()}`}
-                                className="block text-sm hover:text-primary"
-                              >
-                                {sub.name}
-                              </Link>
-                            ))}
-                          </div>
-                        </div>
+                  <div
+                    onMouseEnter={() => setOpenMenu(category.name)}
+                    onMouseLeave={() => setOpenMenu(null)}
+                    className="relative"
+                  >
+                    <DropdownMenu open={openMenu === category.name}>
+                      <DropdownMenuTrigger asChild>
+                        <button className="flex items-center gap-1 text-sm font-bold text-foreground transition-colors hover:text-primary outline-none">
+                          {category.name}
+                        </button>
+                      </DropdownMenuTrigger>
 
-                        {category.subcategories.some(
-                          (sub) => sub.brands.length > 0,
-                        ) && (
-                          <div className="pl-4">
-                            <h4 className="mb-3 text-xs font-semibold uppercase text-muted-foreground">
-                              Brands
-                            </h4>
-                            <div className="space-y-2">
-                              {category.subcategories
-                                .flatMap((s) => s.brands)
-                                .map((brand) => (
+                      {category.subcategories.length > 0 && (
+                        <DropdownMenuContent
+                          className="min-w-[400px] p-6"
+                          align="start"
+                          onMouseEnter={() => setOpenMenu(category.name)}
+                        >
+                          {/* ... (বাকি কন্টেন্ট আগের মতোই থাকবে) ... */}
+                          <div className="grid grid-cols-2 gap-8 divide-x divide-border">
+                            <div className="pr-4">
+                              <h4 className="mb-3 text-xs font-semibold uppercase text-muted-foreground">
+                                Categories
+                              </h4>
+                              <div className="space-y-2">
+                                {category.subcategories.map((sub) => (
                                   <Link
-                                    key={brand}
-                                    href={`/products?brand=${brand.toLowerCase()}`}
+                                    key={sub.name}
+                                    href={`/products?category=${category.name.toLowerCase()}&subcategory=${sub.name.toLowerCase()}`}
                                     className="block text-sm hover:text-primary"
                                   >
-                                    {brand}
+                                    {sub.name}
                                   </Link>
                                 ))}
+                              </div>
                             </div>
+                            {/* Brands section */}
+                            {category.subcategories.some(
+                              (sub) => sub.brands.length > 0,
+                            ) && (
+                              <div className="pl-4">
+                                <h4 className="mb-3 text-xs font-semibold uppercase text-muted-foreground">
+                                  Brands
+                                </h4>
+                                <div className="space-y-2">
+                                  {category.subcategories
+                                    .flatMap((s) => s.brands)
+                                    .map((brand) => (
+                                      <Link
+                                        key={brand}
+                                        href={`/products?brand=${brand.toLowerCase()}`}
+                                        className="block text-sm hover:text-primary"
+                                      >
+                                        {brand}
+                                      </Link>
+                                    ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    </DropdownMenuContent>
-                  )}
-                </DropdownMenu>
-              </div>
-            ))}
+                        </DropdownMenuContent>
+                      )}
+                    </DropdownMenu>
+                  </div>
+                </React.Fragment>
+              ))}
+            </div>
           </nav>
         </div>
       </div>
