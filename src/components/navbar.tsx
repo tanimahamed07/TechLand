@@ -2,7 +2,7 @@
 
 import * as React from "react"; // React import করুন স্টেট ম্যানেজমেন্টের জন্য
 import Link from "next/link";
-import { Search, Heart, ShoppingCart, User, Menu } from "lucide-react";
+import { Search, Heart, ShoppingCart, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -10,9 +10,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
+  DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "./theme-toggle";
 import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { signOut, useSession } from "next-auth/react";
 
 const categories = [
   {
@@ -32,6 +34,17 @@ const categories = [
 
 export function Navbar() {
   const [openMenu, setOpenMenu] = React.useState<string | null>(null);
+  const { data: session, status } = useSession();
+
+  const initials = React.useMemo(() => {
+    const name = session?.user?.name ?? session?.user?.email ?? "User";
+    return name
+      .split(" ")
+      .map((part) => part[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
+  }, [session]);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
@@ -71,11 +84,48 @@ export function Navbar() {
               3
             </Badge>
           </Button>
-          <Avatar>
-            <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-            <AvatarFallback>CN</AvatarFallback>
-            <AvatarBadge className="bg-green-400 dark:bg-green-800" />
-          </Avatar>
+
+          {status === "loading" ? (
+            <div className="h-10 w-10 rounded-full bg-muted" />
+          ) : session?.user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 rounded-lg border border-border bg-background px-2 py-1 transition hover:bg-muted">
+                  <Avatar>
+                    <AvatarImage
+                      src={
+                        session.user.image ?? "https://github.com/shadcn.png"
+                      }
+                      alt={session.user.name ?? "User avatar"}
+                    />
+                    <AvatarFallback>{initials}</AvatarFallback>
+                    <AvatarBadge className="bg-green-400 dark:bg-green-800" />
+                  </Avatar>
+                  <span className="hidden text-sm font-medium md:inline">
+                    {session.user.name ?? session.user.email}
+                  </span>
+                  <Menu className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="min-w-[150px] p-1" align="end">
+                <DropdownMenuItem
+                  onSelect={() => signOut()}
+                  className="cursor-pointer"
+                >
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/login">Login</Link>
+              </Button>
+              <Button variant="default" size="sm" asChild>
+                <Link href="/register">Register</Link>
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -94,7 +144,7 @@ export function Navbar() {
               >
                 All Products
               </Link>
-              {categories.map((category, index) => (
+              {categories.map((category) => (
                 <React.Fragment key={category.name}>
                   {/* Vertical Line - প্রতিটি আইটেমের আগে একটি হালকা লাইন */}
                   <div className="h-4 w-[2px] bg-border/70" />
