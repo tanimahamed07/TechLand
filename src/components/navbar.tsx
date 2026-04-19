@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react"; // React import করুন স্টেট ম্যানেজমেন্টের জন্য
+import * as React from "react";
 import Link from "next/link";
 import { Search, Heart, ShoppingCart, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,9 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "./theme-toggle";
-import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { signOut, useSession } from "next-auth/react";
+import { getCategoryTree } from "@/service/category.service";
 
 interface SubCategory {
   _id: string;
@@ -31,34 +32,28 @@ interface CategoryTree {
   brands: string[];
 }
 
-// Temporary mock data - replace with API call later
-const categories = [
-  {
-    name: "Laptops",
-    subcategories: [
-      { name: "Gaming Laptops", brands: ["ASUS", "MSI", "Razer"] },
-      { name: "Business Laptops", brands: ["Dell", "HP", "Lenovo"] },
-    ],
-  },
-  {
-    name: "Smartphones",
-    subcategories: [
-      { name: "Android", brands: ["Samsung", "Google", "OnePlus"] },
-      { name: "iPhone", brands: ["Apple"] },
-    ],
-  },
-  {
-    name: "Accessories",
-    subcategories: [
-      { name: "Headphones", brands: ["Sony", "Bose", "JBL"] },
-      { name: "Chargers", brands: ["Anker", "Belkin"] },
-    ],
-  },
-];
-
 export function Navbar() {
   const [openMenu, setOpenMenu] = React.useState<string | null>(null);
+  const [categories, setCategories] = React.useState<CategoryTree[]>([]);
+  const [loading, setLoading] = React.useState(true);
   const { data: session, status } = useSession();
+
+  // Fetch categories from API
+  React.useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await getCategoryTree();
+        setCategories(data.data || []);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+        setCategories([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const initials = React.useMemo(() => {
     const name = session?.user?.name ?? session?.user?.email ?? "User";
@@ -73,7 +68,6 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4">
-        {/* Logo Section */}
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
             <span className="text-xl font-bold text-primary-foreground">T</span>
@@ -81,7 +75,6 @@ export function Navbar() {
           <span className="text-xl font-bold text-foreground">TechLand</span>
         </Link>
 
-        {/* Search Bar */}
         <div className="hidden flex-1 md:flex md:max-w-xl">
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -93,7 +86,6 @@ export function Navbar() {
           </div>
         </div>
 
-        {/* Actions */}
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <Button variant="ghost" size="icon" className="relative">
@@ -158,92 +150,87 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Navigation Menu */}
       <div className="border-t border-border">
         <div className="container mx-auto flex h-12 max-w-7xl items-center px-4">
           <nav className="hidden items-center gap-10 md:flex">
-            {" "}
-            {/* gap বাড়িয়ে 10 করা হয়েছে */}
             <div className="flex items-center gap-5">
-              {" "}
-              {/* মেনু আইটেমগুলোকে আলাদা র‍্যাপার এ রাখা হয়েছে */}
               <Link
                 href="/products"
                 className="text-sm font-bold hover:text-primary transition-colors"
               >
                 All Products
               </Link>
-              {categories.map((category) => (
-                <React.Fragment key={category.name}>
-                  {/* Vertical Line - প্রতিটি আইটেমের আগে একটি হালকা লাইন */}
-                  <div className="h-4 w-[2px] bg-border/70" />
 
-                  <div
-                    onMouseEnter={() => setOpenMenu(category.name)}
-                    onMouseLeave={() => setOpenMenu(null)}
-                    className="relative"
-                  >
-                    <DropdownMenu open={openMenu === category.name}>
-                      <DropdownMenuTrigger asChild>
-                        <button className="flex items-center gap-1 text-sm font-bold text-foreground transition-colors hover:text-primary outline-none">
-                          {category.name}
-                        </button>
-                      </DropdownMenuTrigger>
+              {loading ? (
+                <div className="text-sm text-muted-foreground">Loading...</div>
+              ) : (
+                categories.map((category) => (
+                  <React.Fragment key={category._id}>
+                    <div className="h-4 w-[2px] bg-border/70" />
 
-                      {category.subcategories.length > 0 && (
-                        <DropdownMenuContent
-                          className="min-w-[400px] p-6"
-                          align="start"
-                          onMouseEnter={() => setOpenMenu(category.name)}
-                        >
-                          {/* ... (বাকি কন্টেন্ট আগের মতোই থাকবে) ... */}
-                          <div className="grid grid-cols-2 gap-8 divide-x divide-border">
-                            <div className="pr-4">
-                              <h4 className="mb-3 text-xs font-semibold uppercase text-muted-foreground">
-                                Categories
-                              </h4>
-                              <div className="space-y-2">
-                                {category.subcategories.map((sub) => (
-                                  <Link
-                                    key={sub.name}
-                                    href={`/products?category=${category.name.toLowerCase()}&subcategory=${sub.name.toLowerCase()}`}
-                                    className="block text-sm hover:text-primary"
-                                  >
-                                    {sub.name}
-                                  </Link>
-                                ))}
-                              </div>
-                            </div>
-                            {/* Brands section */}
-                            {category.subcategories.some(
-                              (sub) => sub.brands.length > 0,
-                            ) && (
-                              <div className="pl-4">
+                    <div
+                      onMouseEnter={() => setOpenMenu(category.name)}
+                      onMouseLeave={() => setOpenMenu(null)}
+                      className="relative"
+                    >
+                      <DropdownMenu open={openMenu === category.name}>
+                        <DropdownMenuTrigger asChild>
+                          <button className="flex items-center gap-1 text-sm font-bold text-foreground transition-colors hover:text-primary outline-none">
+                            {category.name}
+                          </button>
+                        </DropdownMenuTrigger>
+
+                        {category.children && category.children.length > 0 && (
+                          <DropdownMenuContent
+                            className="min-w-[400px] p-6"
+                            align="start"
+                            onMouseEnter={() => setOpenMenu(category.name)}
+                          >
+                            <div className="grid grid-cols-2 gap-8 divide-x divide-border">
+                              <div className="pr-4">
                                 <h4 className="mb-3 text-xs font-semibold uppercase text-muted-foreground">
-                                  Brands
+                                  Categories
                                 </h4>
                                 <div className="space-y-2">
-                                  {category.subcategories
-                                    .flatMap((s) => s.brands)
-                                    .map((brand) => (
-                                      <Link
-                                        key={brand}
-                                        href={`/products?brand=${brand.toLowerCase()}`}
-                                        className="block text-sm hover:text-primary"
-                                      >
-                                        {brand}
-                                      </Link>
-                                    ))}
+                                  {category.children.map((sub) => (
+                                    <Link
+                                      key={sub._id}
+                                      href={`/products?category=${category.slug}&subcategory=${sub.slug}`}
+                                      className="block text-sm hover:text-primary"
+                                    >
+                                      {sub.name}
+                                    </Link>
+                                  ))}
                                 </div>
                               </div>
-                            )}
-                          </div>
-                        </DropdownMenuContent>
-                      )}
-                    </DropdownMenu>
-                  </div>
-                </React.Fragment>
-              ))}
+
+                              {category.brands &&
+                                category.brands.length > 0 && (
+                                  <div className="pl-4">
+                                    <h4 className="mb-3 text-xs font-semibold uppercase text-muted-foreground">
+                                      Brands
+                                    </h4>
+                                    <div className="space-y-2">
+                                      {category.brands.map((brand) => (
+                                        <Link
+                                          key={brand}
+                                          href={`/products?brand=${brand.toLowerCase()}`}
+                                          className="block text-sm hover:text-primary"
+                                        >
+                                          {brand}
+                                        </Link>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                            </div>
+                          </DropdownMenuContent>
+                        )}
+                      </DropdownMenu>
+                    </div>
+                  </React.Fragment>
+                ))
+              )}
             </div>
           </nav>
         </div>
