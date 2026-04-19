@@ -53,7 +53,9 @@ const RegisterPage = () => {
       });
 
       if (result?.ok) {
+        // Redirect to home page
         router.push("/");
+        router.refresh();
       } else {
         setError(
           "Registration successful, but login failed. Please try logging in manually.",

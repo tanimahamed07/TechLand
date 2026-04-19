@@ -91,7 +91,7 @@ export function Navbar() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 rounded-lg border border-border bg-background px-2 py-1 transition hover:bg-muted">
-                  <Avatar>
+                  <Avatar className="h-8 w-8">
                     <AvatarImage
                       src={
                         session.user.image ?? "https://github.com/shadcn.png"
@@ -99,7 +99,6 @@ export function Navbar() {
                       alt={session.user.name ?? "User avatar"}
                     />
                     <AvatarFallback>{initials}</AvatarFallback>
-                    <AvatarBadge className="bg-green-400 dark:bg-green-800" />
                   </Avatar>
                   <span className="hidden text-sm font-medium md:inline">
                     {session.user.name ?? session.user.email}
@@ -108,9 +107,15 @@ export function Navbar() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="min-w-[150px] p-1" align="end">
+                <DropdownMenuItem className="cursor-pointer">
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer">
+                  Orders
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   onSelect={() => signOut()}
-                  className="cursor-pointer"
+                  className="cursor-pointer text-destructive"
                 >
                   Logout
                 </DropdownMenuItem>
