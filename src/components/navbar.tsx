@@ -16,25 +16,27 @@ import { ThemeToggle } from "./theme-toggle";
 import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { signOut, useSession } from "next-auth/react";
 
-const categories = [
-  {
-    name: "Cameras",
-    subcategories: [
-      { name: "Mirrorless", brands: ["Canon", "Sony"] },
-      { name: "Action Cameras", brands: [] },
-      { name: "DSLR", brands: [] },
-    ],
-  },
-  { name: "Laptops", subcategories: [] },
-  { name: "Headphones", subcategories: [] },
-  { name: "Tablets", subcategories: [] },
-  { name: "Smartphones", subcategories: [] },
-  { name: "Smart Watches", subcategories: [] },
-];
+interface SubCategory {
+  _id: string;
+  name: string;
+  slug: string;
+}
+
+interface CategoryTree {
+  _id: string;
+  name: string;
+  slug: string;
+  image?: string;
+  children: SubCategory[];
+  brands: string[];
+}
+
 
 export function Navbar() {
   const [openMenu, setOpenMenu] = React.useState<string | null>(null);
   const { data: session, status } = useSession();
+
+
 
   const initials = React.useMemo(() => {
     const name = session?.user?.name ?? session?.user?.email ?? "User";
