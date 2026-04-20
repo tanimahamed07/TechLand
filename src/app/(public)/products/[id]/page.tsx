@@ -83,13 +83,14 @@ export default function ProductDetailsPage() {
         // Related products fetch করা (same category)
         if (data.category?._id) {
           const relatedData = await productService.getAllProducts({
-            limit: 4,
+            limit: 20, // আরো বেশি products fetch করা
           });
           // Filter করে same category এর products নেওয়া (current product বাদে)
           const filtered = relatedData.data.filter(
             (p) => p.category._id === data.category._id && p._id !== data._id,
           );
           setRelatedProducts(filtered.slice(0, 4));
+          console.log("Related products found:", filtered.length);
         }
       } catch (error) {
         console.error("Failed to fetch product:", error);
@@ -752,21 +753,30 @@ export default function ProductDetailsPage() {
         </div>
 
         {/* Related Products */}
-        {relatedProducts.length > 0 && (
-          <div className="mt-16">
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-foreground">
-                Related Products
-              </h2>
-              <Link href="/products">
-                <Button variant="ghost" className="gap-2">
-                  View All
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
+        <div className="mt-16">
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-foreground">
+              Related Products
+              {relatedProducts.length > 0 && (
+                <span className="ml-2 text-sm text-muted-foreground">
+                  ({relatedProducts.length})
+                </span>
+              )}
+            </h2>
+            <Link href="/products">
+              <Button variant="ghost" className="gap-2">
+                View All
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
 
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {relatedProducts.length === 0 ? (
+            <p className="text-center text-muted-foreground">
+              No related products found
+            </p>
+          ) : (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {relatedProducts.map((relatedProduct) => (
                 <Card
                   key={relatedProduct._id}
@@ -775,7 +785,7 @@ export default function ProductDetailsPage() {
                   <Link href={`/products/${relatedProduct._id}`}>
                     <div className="relative aspect-square overflow-hidden bg-muted">
                       {relatedProduct.discountPrice && (
-                        <Badge className="absolute left-3 top-3 z-10 bg-destructive text-destructive-foreground">
+                        <Badge className="absolute left-3 top-3 z-10 bg-pink-500 text-white">
                           -
                           {Math.round(
                             ((relatedProduct.price -
@@ -791,9 +801,9 @@ export default function ProductDetailsPage() {
                           e.preventDefault();
                           e.stopPropagation();
                         }}
-                        className="absolute right-3 top-3 z-10 rounded-full bg-white p-2 shadow-md transition hover:bg-pink-50 dark:bg-card"
+                        className="absolute right-3 top-3 z-10 rounded-full bg-white p-2 shadow-md transition hover:bg-pink-50"
                       >
-                        <Heart className="h-4 w-4 text-gray-600 dark:text-foreground" />
+                        <Heart className="h-4 w-4 text-gray-600" />
                       </button>
                       <Image
                         src={
@@ -808,42 +818,44 @@ export default function ProductDetailsPage() {
                     </div>
                   </Link>
 
-                  <CardContent className="p-4">
+                  <CardContent className="px-4 pt-0 pb-4">
                     <Link href={`/products/${relatedProduct._id}`}>
-                      <Badge variant="secondary" className="mb-2 text-xs">
+                      <p className="mt-3 text-xs font-medium uppercase text-muted-foreground">
                         {relatedProduct.brand}
-                      </Badge>
-                      <h3 className="line-clamp-2 text-sm font-medium text-foreground hover:text-primary">
+                      </p>
+                      <h3 className="mt-1 line-clamp-2 text-sm font-medium text-foreground hover:text-primary">
                         {relatedProduct.title}
                       </h3>
                       <div className="mt-2 flex items-center gap-1">
                         <div className="flex">
                           {[...Array(5)].map((_, i) => (
-                            <Star
+                            <span
                               key={i}
-                              className={`h-3 w-3 ${
+                              className={`text-sm ${
                                 i < Math.floor(relatedProduct.rating)
-                                  ? "fill-yellow-400 text-yellow-400"
-                                  : "text-muted"
+                                  ? "text-yellow-400"
+                                  : "text-gray-300"
                               }`}
-                            />
+                            >
+                              ★
+                            </span>
                           ))}
                         </div>
                         <span className="text-xs text-muted-foreground">
                           ({relatedProduct.numReviews})
                         </span>
                       </div>
-                      <div className="mt-3 flex items-baseline gap-2">
-                        <span className="text-lg font-bold text-primary">
+                      <div className="mt-3 flex items-center gap-2">
+                        <p className="text-lg font-bold text-primary">
                           ৳
                           {(
                             relatedProduct.discountPrice || relatedProduct.price
                           ).toLocaleString()}
-                        </span>
+                        </p>
                         {relatedProduct.discountPrice && (
-                          <span className="text-xs text-muted-foreground line-through">
+                          <p className="text-sm text-muted-foreground line-through">
                             ৳{relatedProduct.price.toLocaleString()}
-                          </span>
+                          </p>
                         )}
                       </div>
                     </Link>
@@ -865,8 +877,8 @@ export default function ProductDetailsPage() {
                 </Card>
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
