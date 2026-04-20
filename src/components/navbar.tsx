@@ -180,41 +180,55 @@ export function Navbar() {
                           </button>
                         </DropdownMenuTrigger>
 
-                        {category.children && category.children.length > 0 && (
+                        {/* Dropdown দেখাবে যদি subcategories অথবা brands থাকে */}
+                        {((category.children && category.children.length > 0) ||
+                          (category.brands && category.brands.length > 0)) && (
                           <DropdownMenuContent
                             className="min-w-[400px] p-6"
                             align="start"
                             onMouseEnter={() => setOpenMenu(category.name)}
                           >
                             <div className="grid grid-cols-2 gap-8 divide-x divide-border">
-                              <div className="pr-4">
-                                <h4 className="mb-3 text-xs font-semibold uppercase text-muted-foreground">
-                                  Categories
-                                </h4>
-                                <div className="space-y-2">
-                                  {category.children.map((sub) => (
-                                    <Link
-                                      key={sub._id}
-                                      href={`/products?category=${category.slug}&subcategory=${sub.slug}`}
-                                      className="block text-sm hover:text-primary"
-                                    >
-                                      {sub.name}
-                                    </Link>
-                                  ))}
-                                </div>
-                              </div>
+                              {/* Subcategories Section */}
+                              {category.children &&
+                                category.children.length > 0 && (
+                                  <div className="pr-4">
+                                    <h4 className="mb-3 text-xs font-semibold uppercase text-muted-foreground">
+                                      Categories
+                                    </h4>
+                                    <div className="space-y-2">
+                                      {category.children.map((sub) => (
+                                        <Link
+                                          key={sub._id}
+                                          href={`/products?category=${category.slug}&subcategory=${sub.slug}`}
+                                          className="block text-sm hover:text-primary"
+                                        >
+                                          {sub.name}
+                                        </Link>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
 
+                              {/* Brands Section - category slug সহ link */}
                               {category.brands &&
                                 category.brands.length > 0 && (
-                                  <div className="pl-4">
+                                  <div
+                                    className={
+                                      category.children &&
+                                      category.children.length > 0
+                                        ? "pl-4"
+                                        : "col-span-2"
+                                    }
+                                  >
                                     <h4 className="mb-3 text-xs font-semibold uppercase text-muted-foreground">
                                       Brands
                                     </h4>
-                                    <div className="space-y-2">
+                                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                                       {category.brands.map((brand) => (
                                         <Link
                                           key={brand}
-                                          href={`/products?brand=${brand.toLowerCase()}`}
+                                          href={`/products?category=${category.slug}&brand=${brand.toLowerCase()}`}
                                           className="block text-sm hover:text-primary"
                                         >
                                           {brand}

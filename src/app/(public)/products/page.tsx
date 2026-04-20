@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,11 @@ interface Product {
     _id: string;
     name: string;
     slug: string;
+    parentCategory?: {
+      _id: string;
+      name: string;
+      slug: string;
+    };
   };
 }
 
@@ -47,15 +53,36 @@ interface CategoryTree {
 export default function ProductsPage() {
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get("category");
+  const subcategoryParam = searchParams.get("subcategory");
+  const brandParam = searchParams.get("brand");
 
   const [categories, setCategories] = React.useState<CategoryTree[]>([]);
   const [products, setProducts] = React.useState<Product[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [selectedCategory, setSelectedCategory] = React.useState<string | null>(
-    categoryParam,
+    subcategoryParam || categoryParam,
+  );
+  const [selectedBrand, setSelectedBrand] = React.useState<string | null>(
+    brandParam,
   );
   const [searchQuery, setSearchQuery] = React.useState("");
   const [sortBy, setSortBy] = React.useState("newest");
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [totalPages, setTotalPages] = React.useState(1);
+  const [totalProducts, setTotalProducts] = React.useState(0);
+  const itemsPerPage = 12;
+
+  // URL params থেকে filter update করা
+  React.useEffect(() => {
+    if (subcategoryParam || categoryParam) {
+      setSelectedCategory(subcategoryParam || categoryParam);
+    }
+    if (brandParam) {
+      setSelectedBrand(brandParam);
+    }
+  }, [categoryParam, subcategoryParam, brandParam]);
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -64,9 +91,20 @@ export default function ProductsPage() {
         const categoryData = await getCategoryTree();
         setCategories(categoryData.data || []);
 
-        // Fetch all products without category filter
-        const productData = await productService.getAllProducts({ limit: 100 });
+        // Backend থেকে products fetch করা - category filter সহ
+        const params: any = {
+          page: currentPage,
+          limit: itemsPerPage,
+        };
+
+        // যদি category select থাকে, তাহলে backend query তে যোগ করা
+        // কিন্তু backend category filter ObjectId expect করে, slug না
+        // তাই আমরা সব products fetch করে client-side filter করব
+
+        const productData = await productService.getAllProducts(params);
         setProducts(productData.data || []);
+        setTotalPages(productData.meta?.totalPages || 1);
+        setTotalProducts(productData.meta?.total || 0);
       } catch (error) {
         console.error("Failed to fetch data:", error);
       } finally {
@@ -75,30 +113,48 @@ export default function ProductsPage() {
     };
 
     fetchData();
-  }, []);
+  }, [currentPage]);
 
   const filteredProducts = React.useMemo(() => {
     let filtered = [...products];
 
-    // Filter by selected category
+    // Category দিয়ে filter করা (main category অথবা subcategory)
     if (selectedCategory) {
       filtered = filtered.filter((product) => {
-        // Check if product's category slug matches
         if (product.category && typeof product.category === "object") {
-          return product.category.slug === selectedCategory;
+          // Direct category match
+          if (product.category.slug === selectedCategory) {
+            return true;
+          }
+          // Parent category match (যদি product এর category একটা subcategory হয়)
+          if (
+            product.category.parentCategory &&
+            typeof product.category.parentCategory === "object" &&
+            product.category.parentCategory.slug === selectedCategory
+          ) {
+            return true;
+          }
         }
         return false;
       });
     }
 
-    // Filter by search query
+    // Brand দিয়ে filter করা
+    if (selectedBrand) {
+      filtered = filtered.filter(
+        (product) =>
+          product.brand?.toLowerCase() === selectedBrand.toLowerCase(),
+      );
+    }
+
+    // Search query দিয়ে filter করা
     if (searchQuery) {
       filtered = filtered.filter((product) =>
         product.name.toLowerCase().includes(searchQuery.toLowerCase()),
       );
     }
 
-    // Sort products
+    // Sort করা
     if (sortBy === "newest") {
       // Keep original order
     } else if (sortBy === "price-low") {
@@ -108,10 +164,11 @@ export default function ProductsPage() {
     }
 
     return filtered;
-  }, [products, selectedCategory, searchQuery, sortBy]);
+  }, [products, selectedCategory, selectedBrand, searchQuery, sortBy]);
 
   const clearFilters = () => {
     setSelectedCategory(null);
+    setSelectedBrand(null);
     setSearchQuery("");
   };
 
@@ -144,7 +201,7 @@ export default function ProductsPage() {
               <CardContent className="p-6">
                 <div className="mb-4 flex items-center justify-between">
                   <h3 className="font-semibold">Filters</h3>
-                  {selectedCategory && (
+                  {(selectedCategory || selectedBrand) && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -157,6 +214,7 @@ export default function ProductsPage() {
                 </div>
 
                 <div className="space-y-6">
+                  {/* Category Filter */}
                   <div>
                     <h4 className="mb-3 text-sm font-medium uppercase text-muted-foreground">
                       Category
@@ -221,6 +279,55 @@ export default function ProductsPage() {
                       ))}
                     </div>
                   </div>
+
+                  {/* Brand Filter */}
+                  <div>
+                    <h4 className="mb-3 text-sm font-medium uppercase text-muted-foreground">
+                      Brand
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="all-brands"
+                          checked={!selectedBrand}
+                          onCheckedChange={() => setSelectedBrand(null)}
+                        />
+                        <Label
+                          htmlFor="all-brands"
+                          className="cursor-pointer text-sm font-normal"
+                        >
+                          All Brands
+                        </Label>
+                      </div>
+                      {/* সব products থেকে unique brands বের করা */}
+                      {Array.from(
+                        new Set(
+                          products
+                            .map((p) => p.brand)
+                            .filter((b) => b && b.trim() !== ""),
+                        ),
+                      )
+                        .sort()
+                        .map((brand) => (
+                          <div
+                            key={brand}
+                            className="flex items-center space-x-2"
+                          >
+                            <Checkbox
+                              id={`brand-${brand}`}
+                              checked={selectedBrand === brand}
+                              onCheckedChange={() => setSelectedBrand(brand)}
+                            />
+                            <Label
+                              htmlFor={`brand-${brand}`}
+                              className="cursor-pointer text-sm font-normal"
+                            >
+                              {brand}
+                            </Label>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -228,6 +335,7 @@ export default function ProductsPage() {
 
           {/* Products Grid */}
           <div className="flex-1">
+            {/* Filter and Sort Header */}
             <div className="mb-6 flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <p className="text-sm text-muted-foreground">
@@ -241,7 +349,21 @@ export default function ProductsPage() {
                 {selectedCategory && (
                   <Badge variant="secondary" className="gap-1">
                     Category
-                    <button onClick={clearFilters} className="ml-1">
+                    <button
+                      onClick={() => setSelectedCategory(null)}
+                      className="ml-1"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                )}
+                {selectedBrand && (
+                  <Badge variant="secondary" className="gap-1">
+                    Brand: {selectedBrand}
+                    <button
+                      onClick={() => setSelectedBrand(null)}
+                      className="ml-1"
+                    >
                       <X className="h-3 w-3" />
                     </button>
                   </Badge>
@@ -267,8 +389,9 @@ export default function ProductsPage() {
                 {[...Array(8)].map((_, i) => (
                   <Card key={i} className="overflow-hidden">
                     <div className="aspect-square animate-pulse bg-muted" />
-                    <CardContent className="p-4">
-                      <div className="h-4 animate-pulse rounded bg-muted" />
+                    {/* Top padding removed from skeleton */}
+                    <CardContent className="px-4 pt-0 pb-4">
+                      <div className="mt-4 h-4 animate-pulse rounded bg-muted" />
                       <div className="mt-2 h-3 w-2/3 animate-pulse rounded bg-muted" />
                     </CardContent>
                   </Card>
@@ -281,73 +404,165 @@ export default function ProductsPage() {
             ) : (
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredProducts.map((product) => (
-                  <Card
-                    key={product._id}
-                    className="group overflow-hidden transition-shadow hover:shadow-lg"
-                  >
-                    <div className="relative aspect-square overflow-hidden bg-muted">
-                      {product.discount && (
-                        <Badge className="absolute left-3 top-3 z-10 bg-pink-500 text-white">
-                          -{product.discount}%
-                        </Badge>
-                      )}
-                      <button className="absolute right-3 top-3 z-10 rounded-full bg-white p-2 shadow-md transition hover:bg-pink-50">
-                        <Heart className="h-4 w-4 text-gray-600" />
-                      </button>
-                      <Image
-                        src={
-                          (product.images && product.images[0]) ||
-                          product.image ||
-                          "https://placehold.co/400x400/e2e8f0/64748b?text=No+Image"
-                        }
-                        alt={product.title || product.name || "Product image"}
-                        fill
-                        className="object-cover transition-transform group-hover:scale-105"
-                      />
-                    </div>
-                    <CardContent className="p-4">
-                      <p className="text-xs font-medium uppercase text-muted-foreground">
-                        {product.brand}
-                      </p>
-                      <h3 className="mt-1 line-clamp-2 text-sm font-medium text-foreground">
-                        {product.title || product.name}
-                      </h3>
-                      <div className="mt-2 flex items-center gap-1">
-                        <div className="flex">
-                          {[...Array(5)].map((_, i) => (
-                            <span
-                              key={i}
-                              className={`text-sm ${
-                                i < Math.floor(product.rating)
-                                  ? "text-yellow-400"
-                                  : "text-gray-300"
-                              }`}
-                            >
-                              ★
-                            </span>
-                          ))}
-                        </div>
-                        <span className="text-xs text-muted-foreground">
-                          ({product.numReviews || product.reviewCount || 0})
-                        </span>
-                      </div>
-                      <div className="mt-3 flex items-center gap-2">
-                        <p className="text-lg font-bold text-primary">
-                          ৳{product.price.toLocaleString()}
-                        </p>
-                        {product.originalPrice && (
-                          <p className="text-sm text-muted-foreground line-through">
-                            ৳{product.originalPrice.toLocaleString()}
-                          </p>
+                  <Link key={product._id} href={`/products/${product._id}`}>
+                    <Card className="group overflow-hidden transition-shadow hover:shadow-lg">
+                      <div className="relative aspect-square overflow-hidden bg-muted">
+                        {product.discount && (
+                          <Badge className="absolute left-3 top-3 z-10 bg-pink-500 text-white">
+                            -{product.discount}%
+                          </Badge>
                         )}
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                          className="absolute right-3 top-3 z-10 rounded-full bg-white p-2 shadow-md transition hover:bg-pink-50"
+                        >
+                          <Heart className="h-4 w-4 text-gray-600" />
+                        </button>
+                        <Image
+                          src={
+                            (product.images && product.images[0]) ||
+                            product.image ||
+                            "https://placehold.co/400x400/e2e8f0/64748b?text=No+Image"
+                          }
+                          alt={product.title || product.name || "Product image"}
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                          className="object-cover transition-transform group-hover:scale-105"
+                        />
                       </div>
-                      <Button className="mt-4 w-full gap-2" size="sm">
-                        <ShoppingCart className="h-4 w-4" />
-                        Add to Cart
-                      </Button>
-                    </CardContent>
-                  </Card>
+
+                      {/* pt-0: Image er thik niche jei 16px padding chilo sheta remove korbe. 
+              pb-4: Nicher padding (16px) thakbe jate button ta kineer sathe lege na jay.
+          */}
+                      <CardContent className="px-4 pt-0 pb-4">
+                        <p className="mt-3 text-xs font-medium uppercase text-muted-foreground">
+                          {product.brand}
+                        </p>
+                        <h3 className="mt-1 line-clamp-2 text-sm font-medium text-foreground">
+                          {product.title || product.name}
+                        </h3>
+                        <div className="mt-2 flex items-center gap-1">
+                          <div className="flex">
+                            {[...Array(5)].map((_, i) => (
+                              <span
+                                key={i}
+                                className={`text-sm ${
+                                  i < Math.floor(product.rating)
+                                    ? "text-yellow-400"
+                                    : "text-gray-300"
+                                }`}
+                              >
+                                ★
+                              </span>
+                            ))}
+                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            ({product.numReviews || product.reviewCount || 0})
+                          </span>
+                        </div>
+                        <div className="mt-3 flex items-center gap-2">
+                          <p className="text-lg font-bold text-primary">
+                            ৳{product.price.toLocaleString()}
+                          </p>
+                          {product.originalPrice && (
+                            <p className="text-sm text-muted-foreground line-through">
+                              ৳{product.originalPrice.toLocaleString()}
+                            </p>
+                          )}
+                        </div>
+                        <Button
+                          className="mt-4 w-full gap-2"
+                          size="sm"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                        >
+                          <ShoppingCart className="h-4 w-4" />
+                          Add to Cart
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 ))}
+              </div>
+            )}
+
+            {/* Pagination */}
+            {!loading && filteredProducts.length > 0 && totalPages > 1 && (
+              <div className="mt-8 flex items-center justify-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(1, prev - 1))
+                  }
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+
+                <div className="flex gap-1">
+                  {[...Array(totalPages)].map((_, index) => {
+                    const pageNumber = index + 1;
+                    // শুধু প্রথম, শেষ, এবং current page এর আশেপাশের পেজ দেখাবে
+                    if (
+                      pageNumber === 1 ||
+                      pageNumber === totalPages ||
+                      (pageNumber >= currentPage - 1 &&
+                        pageNumber <= currentPage + 1)
+                    ) {
+                      return (
+                        <Button
+                          key={pageNumber}
+                          variant={
+                            currentPage === pageNumber ? "default" : "outline"
+                          }
+                          size="sm"
+                          onClick={() => setCurrentPage(pageNumber)}
+                          className="min-w-[40px]"
+                        >
+                          {pageNumber}
+                        </Button>
+                      );
+                    } else if (
+                      pageNumber === currentPage - 2 ||
+                      pageNumber === currentPage + 2
+                    ) {
+                      return (
+                        <span
+                          key={pageNumber}
+                          className="flex items-center px-2"
+                        >
+                          ...
+                        </span>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            )}
+
+            {/* Page Info */}
+            {!loading && filteredProducts.length > 0 && (
+              <div className="mt-4 text-center text-sm text-muted-foreground">
+                Page {currentPage} of {totalPages} • Total {totalProducts}{" "}
+                products
               </div>
             )}
           </div>

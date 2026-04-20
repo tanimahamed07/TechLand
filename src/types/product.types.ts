@@ -8,6 +8,11 @@ export interface Product {
     _id: string;
     name: string;
     slug: string;
+    parentCategory?: {
+      _id: string;
+      name: string;
+      slug: string;
+    };
   };
   brand: string;
   images: string[];
