@@ -20,6 +20,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { productService } from "@/service/product.service";
+import { reviewService, Review } from "@/service/review.service";
+import { useSession } from "next-auth/react";
 
 interface Product {
   _id: string;
@@ -51,15 +53,24 @@ interface Product {
 export default function ProductDetailsPage() {
   const params = useParams();
   const productId = params.id as string;
+  const { data: session } = useSession();
 
   const [product, setProduct] = React.useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = React.useState<Product[]>([]);
+  const [reviews, setReviews] = React.useState<Review[]>([]);
+  const [reviewsTotal, setReviewsTotal] = React.useState(0);
   const [loading, setLoading] = React.useState(true);
+  const [reviewsLoading, setReviewsLoading] = React.useState(false);
   const [selectedImage, setSelectedImage] = React.useState(0);
   const [quantity, setQuantity] = React.useState(1);
   const [activeTab, setActiveTab] = React.useState<
     "description" | "specifications" | "reviews"
   >("description");
+
+  // Review form state
+  const [reviewRating, setReviewRating] = React.useState(0);
+  const [reviewComment, setReviewComment] = React.useState("");
+  const [submittingReview, setSubmittingReview] = React.useState(false);
 
   // Product fetch করা
   React.useEffect(() => {
@@ -91,6 +102,75 @@ export default function ProductDetailsPage() {
       fetchProduct();
     }
   }, [productId]);
+
+  // Reviews fetch করা
+  React.useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        setReviewsLoading(true);
+        const data = await reviewService.getProductReviews(productId);
+        setReviews(data.data || []);
+        setReviewsTotal(data.meta?.total || 0);
+      } catch (error) {
+        console.error("Failed to fetch reviews:", error);
+      } finally {
+        setReviewsLoading(false);
+      }
+    };
+
+    if (productId && activeTab === "reviews") {
+      fetchReviews();
+    }
+  }, [productId, activeTab]);
+
+  // Submit review handler
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!session) {
+      alert("Please login to submit a review");
+      return;
+    }
+
+    if (reviewRating === 0) {
+      alert("Please select a rating");
+      return;
+    }
+
+    if (!reviewComment.trim()) {
+      alert("Please write a review");
+      return;
+    }
+
+    try {
+      setSubmittingReview(true);
+      await reviewService.addReview(
+        {
+          productId,
+          rating: reviewRating,
+          comment: reviewComment,
+        },
+        session.accessToken,
+      );
+
+      // Reset form
+      setReviewRating(0);
+      setReviewComment("");
+
+      // Refetch reviews
+      const data = await reviewService.getProductReviews(productId);
+      setReviews(data.data || []);
+      setReviewsTotal(data.meta?.total || 0);
+
+      alert("Review submitted successfully!");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to submit review";
+      alert(errorMessage);
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   const handleQuantityChange = (type: "increase" | "decrease") => {
     if (type === "increase" && quantity < (product?.stock || 1)) {
@@ -433,7 +513,7 @@ export default function ProductDetailsPage() {
                     : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
-                Reviews ({product.numReviews})
+                Reviews ({reviewsTotal})
               </button>
             </div>
           </div>
@@ -488,7 +568,7 @@ export default function ProductDetailsPage() {
                       ))}
                     </div>
                     <p className="mt-2 text-sm text-muted-foreground">
-                      Based on {product.numReviews} reviews
+                      Based on {reviewsTotal} reviews
                     </p>
                   </div>
 
@@ -525,65 +605,68 @@ export default function ProductDetailsPage() {
                     <h3 className="mb-4 text-lg font-semibold text-foreground">
                       Write a Review
                     </h3>
-                    <div className="space-y-4">
-                      {/* Rating Input */}
-                      <div>
-                        <label className="mb-2 block text-sm font-medium text-foreground">
-                          Your Rating
-                        </label>
-                        <div className="flex gap-2">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <button
-                              key={star}
-                              type="button"
-                              className="transition hover:scale-110"
-                            >
-                              <Star className="h-6 w-6 text-muted hover:fill-yellow-400 hover:text-yellow-400" />
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Review Text */}
-                      <div>
-                        <label className="mb-2 block text-sm font-medium text-foreground">
-                          Your Review
-                        </label>
-                        <textarea
-                          rows={4}
-                          placeholder="Share your experience with this product..."
-                          className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                        />
-                      </div>
-
-                      {/* Name Input */}
-                      <div className="grid gap-4 sm:grid-cols-2">
+                    {!session ? (
+                      <p className="text-center text-muted-foreground">
+                        Please{" "}
+                        <Link
+                          href="/login"
+                          className="text-primary hover:underline"
+                        >
+                          login
+                        </Link>{" "}
+                        to write a review
+                      </p>
+                    ) : (
+                      <form onSubmit={handleSubmitReview} className="space-y-4">
+                        {/* Rating Input */}
                         <div>
                           <label className="mb-2 block text-sm font-medium text-foreground">
-                            Name
+                            Your Rating *
                           </label>
-                          <input
-                            type="text"
-                            placeholder="Your name"
-                            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                          />
+                          <div className="flex gap-2">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <button
+                                key={star}
+                                type="button"
+                                onClick={() => setReviewRating(star)}
+                                className="transition hover:scale-110"
+                              >
+                                <Star
+                                  className={`h-6 w-6 ${
+                                    star <= reviewRating
+                                      ? "fill-yellow-400 text-yellow-400"
+                                      : "text-muted hover:fill-yellow-400 hover:text-yellow-400"
+                                  }`}
+                                />
+                              </button>
+                            ))}
+                          </div>
                         </div>
+
+                        {/* Review Text */}
                         <div>
                           <label className="mb-2 block text-sm font-medium text-foreground">
-                            Email
+                            Your Review *
                           </label>
-                          <input
-                            type="email"
-                            placeholder="your@email.com"
+                          <textarea
+                            rows={4}
+                            value={reviewComment}
+                            onChange={(e) => setReviewComment(e.target.value)}
+                            placeholder="Share your experience with this product..."
                             className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                            required
                           />
                         </div>
-                      </div>
 
-                      <Button className="w-full sm:w-auto">
-                        Submit Review
-                      </Button>
-                    </div>
+                        <Button
+                          type="submit"
+                          className="w-full sm:w-auto"
+                          disabled={submittingReview}
+                        >
+                          {submittingReview ? "Submitting..." : "Submit Review"}
+                        </Button>
+                      </form>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -593,48 +676,75 @@ export default function ProductDetailsPage() {
                     Customer Reviews
                   </h3>
 
-                  {/* Demo Reviews */}
-                  {[1, 2, 3].map((review) => (
-                    <Card key={review}>
-                      <CardContent className="p-6">
-                        <div className="flex items-start justify-between">
-                          <div className="flex gap-4">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-lg font-semibold text-primary">
-                              JD
+                  {reviewsLoading ? (
+                    <div className="space-y-4">
+                      {[1, 2, 3].map((i) => (
+                        <Card key={i}>
+                          <CardContent className="p-6">
+                            <div className="animate-pulse space-y-3">
+                              <div className="h-4 w-32 rounded bg-muted" />
+                              <div className="h-3 w-48 rounded bg-muted" />
+                              <div className="h-16 rounded bg-muted" />
                             </div>
-                            <div>
-                              <h4 className="font-semibold text-foreground">
-                                John Doe
-                              </h4>
-                              <div className="mt-1 flex items-center gap-2">
-                                <div className="flex">
-                                  {[...Array(5)].map((_, i) => (
-                                    <Star
-                                      key={i}
-                                      className={`h-4 w-4 ${
-                                        i < 4
-                                          ? "fill-yellow-400 text-yellow-400"
-                                          : "text-muted"
-                                      }`}
-                                    />
-                                  ))}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : reviews.length === 0 ? (
+                    <p className="text-center text-muted-foreground">
+                      No reviews yet. Be the first to review this product!
+                    </p>
+                  ) : (
+                    reviews.map((review) => (
+                      <Card key={review._id}>
+                        <CardContent className="p-6">
+                          <div className="flex items-start justify-between">
+                            <div className="flex gap-4">
+                              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-lg font-semibold text-primary">
+                                {review.userId.name
+                                  .split(" ")
+                                  .map((n) => n[0])
+                                  .join("")
+                                  .toUpperCase()
+                                  .slice(0, 2)}
+                              </div>
+                              <div>
+                                <h4 className="font-semibold text-foreground">
+                                  {review.userId.name}
+                                </h4>
+                                <div className="mt-1 flex items-center gap-2">
+                                  <div className="flex">
+                                    {[...Array(5)].map((_, i) => (
+                                      <Star
+                                        key={i}
+                                        className={`h-4 w-4 ${
+                                          i < review.rating
+                                            ? "fill-yellow-400 text-yellow-400"
+                                            : "text-muted"
+                                        }`}
+                                      />
+                                    ))}
+                                  </div>
+                                  <span className="text-xs text-muted-foreground">
+                                    {new Date(
+                                      review.createdAt,
+                                    ).toLocaleDateString("en-US", {
+                                      year: "numeric",
+                                      month: "short",
+                                      day: "numeric",
+                                    })}
+                                  </span>
                                 </div>
-                                <span className="text-xs text-muted-foreground">
-                                  2 days ago
-                                </span>
                               </div>
                             </div>
                           </div>
-                          <Badge variant="secondary">Verified Purchase</Badge>
-                        </div>
-                        <p className="mt-4 text-sm text-foreground">
-                          Great product! Exactly what I was looking for. The
-                          quality is excellent and it arrived quickly. Highly
-                          recommend!
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ))}
+                          <p className="mt-4 text-sm text-foreground">
+                            {review.comment}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
                 </div>
               </div>
             )}
@@ -658,11 +768,11 @@ export default function ProductDetailsPage() {
 
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {relatedProducts.map((relatedProduct) => (
-                <Link
+                <Card
                   key={relatedProduct._id}
-                  href={`/products/${relatedProduct._id}`}
+                  className="group overflow-hidden transition-shadow hover:shadow-lg"
                 >
-                  <Card className="group overflow-hidden transition-shadow hover:shadow-lg">
+                  <Link href={`/products/${relatedProduct._id}`}>
                     <div className="relative aspect-square overflow-hidden bg-muted">
                       {relatedProduct.discountPrice && (
                         <Badge className="absolute left-3 top-3 z-10 bg-destructive text-destructive-foreground">
@@ -676,6 +786,15 @@ export default function ProductDetailsPage() {
                           %
                         </Badge>
                       )}
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                        className="absolute right-3 top-3 z-10 rounded-full bg-white p-2 shadow-md transition hover:bg-pink-50 dark:bg-card"
+                      >
+                        <Heart className="h-4 w-4 text-gray-600 dark:text-foreground" />
+                      </button>
                       <Image
                         src={
                           relatedProduct.images[0] ||
@@ -687,11 +806,14 @@ export default function ProductDetailsPage() {
                         className="object-cover transition-transform group-hover:scale-105"
                       />
                     </div>
-                    <CardContent className="p-4">
+                  </Link>
+
+                  <CardContent className="p-4">
+                    <Link href={`/products/${relatedProduct._id}`}>
                       <Badge variant="secondary" className="mb-2 text-xs">
                         {relatedProduct.brand}
                       </Badge>
-                      <h3 className="line-clamp-2 text-sm font-medium text-foreground">
+                      <h3 className="line-clamp-2 text-sm font-medium text-foreground hover:text-primary">
                         {relatedProduct.title}
                       </h3>
                       <div className="mt-2 flex items-center gap-1">
@@ -724,9 +846,23 @@ export default function ProductDetailsPage() {
                           </span>
                         )}
                       </div>
-                    </CardContent>
-                  </Card>
-                </Link>
+                    </Link>
+
+                    {/* Add to Cart Button */}
+                    <Button
+                      className="mt-4 w-full gap-2"
+                      size="sm"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        // Add to cart functionality
+                      }}
+                    >
+                      <ShoppingCart className="h-4 w-4" />
+                      Add to Cart
+                    </Button>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </div>
