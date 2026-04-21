@@ -31,9 +31,14 @@ import {
 interface CartSidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  onCartUpdate?: (itemCount: number) => void;
 }
 
-export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
+export default function CartSidebar({
+  isOpen,
+  onClose,
+  onCartUpdate,
+}: CartSidebarProps) {
   const { data: session } = useSession();
   const router = useRouter();
   const [cart, setCart] = useState<ICart | null>(null);
@@ -48,6 +53,11 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
         setLoading(true);
         const data = await getCart();
         setCart(data);
+
+        // Update cart count in Navbar
+        const itemCount =
+          data?.items.reduce((sum, item) => sum + item.quantity, 0) || 0;
+        onCartUpdate?.(itemCount);
       } catch (error) {
         console.error("Failed to fetch cart:", error);
       } finally {
@@ -56,13 +66,20 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
     };
 
     fetchCart();
-  }, [session, isOpen]);
+  }, [session, isOpen, onCartUpdate]);
 
   // Quantity update করা
   const handleUpdateQuantity = async (itemId: string, newQuantity: number) => {
     try {
       const updatedCart = await updateCartItem(itemId, newQuantity);
       setCart(updatedCart);
+
+      // Update cart count
+      const itemCount = updatedCart.items.reduce(
+        (sum, item) => sum + item.quantity,
+        0,
+      );
+      onCartUpdate?.(itemCount);
     } catch (error) {
       console.error("Failed to update quantity:", error);
     }
@@ -73,6 +90,13 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
     try {
       const updatedCart = await removeCartItem(itemId);
       setCart(updatedCart);
+
+      // Update cart count
+      const itemCount = updatedCart.items.reduce(
+        (sum, item) => sum + item.quantity,
+        0,
+      );
+      onCartUpdate?.(itemCount);
     } catch (error) {
       console.error("Failed to remove item:", error);
     }
@@ -158,16 +182,16 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                   <div className="flex gap-4">
                     {/* Image */}
                     <Link
-                      href={`/products/${item.productId._id}`}
+                      href={`/products/${item.productId?._id || ""}`}
                       onClick={onClose}
                       className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md border bg-muted"
                     >
                       <Image
                         src={
-                          item.productId.images[0] ||
+                          item.productId?.images?.[0] ||
                           "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&q=80"
                         }
-                        alt={item.productId.title}
+                        alt={item.productId?.title || "Product"}
                         fill
                         className="object-cover"
                         unoptimized
@@ -178,13 +202,13 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                     <div className="flex flex-1 flex-col justify-between">
                       <div className="space-y-1">
                         <Link
-                          href={`/products/${item.productId._id}`}
+                          href={`/products/${item.productId?._id || ""}`}
                           onClick={onClose}
                           className="line-clamp-1 text-sm font-medium leading-none transition-colors hover:text-primary"
                         >
-                          {item.productId.title}
+                          {item.productId?.title || "Product"}
                         </Link>
-                        {item.productId.brand && (
+                        {item.productId?.brand && (
                           <p className="text-xs uppercase tracking-tight text-muted-foreground">
                             {item.productId.brand}
                           </p>
@@ -225,7 +249,9 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 rounded-none"
-                            disabled={item.quantity >= item.productId.stock}
+                            disabled={
+                              item.quantity >= (item.productId?.stock || 0)
+                            }
                             onClick={() =>
                               handleUpdateQuantity(item._id, item.quantity + 1)
                             }

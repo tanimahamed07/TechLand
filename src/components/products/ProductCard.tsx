@@ -1,22 +1,58 @@
+"use client";
+
 import { Heart, ShoppingCart } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import type { Product } from "@/types/product.types";
+import { addToCart } from "@/service/cart.service";
 
 interface ProductCardProps {
   product: Product;
 }
 
 export const ProductCard = ({ product }: ProductCardProps) => {
+  const { data: session } = useSession();
+  const router = useRouter();
+  const [adding, setAdding] = useState(false);
+
   // Calculate discount percentage if discountPrice exists
   const discount = product.discountPrice
     ? Math.round(
         ((product.price - product.discountPrice) / product.price) * 100,
       )
     : 0;
+
+  // Add to cart handler
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Check if user is logged in
+    if (!session?.user) {
+      router.push("/login?redirect=/products");
+      return;
+    }
+
+    try {
+      setAdding(true);
+      await addToCart(product._id, 1);
+      // Success feedback
+      alert("Product added to cart!");
+      // Trigger cart update event
+      window.dispatchEvent(new Event("cartUpdated"));
+    } catch (error) {
+      console.error("Failed to add to cart:", error);
+      alert("Failed to add to cart. Please try again.");
+    } finally {
+      setAdding(false);
+    }
+  };
 
   return (
     <div>
@@ -91,13 +127,22 @@ export const ProductCard = ({ product }: ProductCardProps) => {
             <Button
               className="mt-4 w-full gap-2"
               size="sm"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
+              onClick={handleAddToCart}
+              disabled={adding || product.stock === 0}
             >
-              <ShoppingCart className="h-4 w-4" />
-              Add to Cart
+              {adding ? (
+                <>
+                  <span className="loading loading-spinner loading-xs" />
+                  Adding...
+                </>
+              ) : product.stock === 0 ? (
+                "Out of Stock"
+              ) : (
+                <>
+                  <ShoppingCart className="h-4 w-4" />
+                  Add to Cart
+                </>
+              )}
             </Button>
           </CardContent>
         </Card>

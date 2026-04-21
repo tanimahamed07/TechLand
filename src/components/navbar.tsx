@@ -18,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { ThemeToggle } from "./theme-toggle";
 import { getCategoryTree } from "@/service/category.service";
 import { CategoryTree } from "@/types/category.types";
+import { getCart } from "@/service/cart.service";
 import CartSidebar from "./CartSidebar";
 
 export function Navbar() {
@@ -25,6 +26,7 @@ export function Navbar() {
   const [categories, setCategories] = useState<CategoryTree[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [cartOpen, setCartOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
   const { data: session, status } = useSession();
 
   // Fetch categories from API
@@ -43,6 +45,35 @@ export function Navbar() {
 
     fetchCategories();
   }, []);
+
+  // Fetch cart count on mount and when user logs in
+  useEffect(() => {
+    const fetchCartCount = async () => {
+      if (!session?.user) {
+        setCartCount(0);
+        return;
+      }
+
+      try {
+        const cart = await getCart();
+        const count =
+          cart?.items.reduce((sum, item) => sum + item.quantity, 0) || 0;
+        setCartCount(count);
+      } catch (error) {
+        console.error("Failed to fetch cart count:", error);
+      }
+    };
+
+    fetchCartCount();
+
+    // Listen for cart update events
+    const handleCartUpdate = () => {
+      fetchCartCount();
+    };
+
+    window.addEventListener("cartUpdated", handleCartUpdate);
+    return () => window.removeEventListener("cartUpdated", handleCartUpdate);
+  }, [session]);
 
   const initials = useMemo(() => {
     const name = session?.user?.name ?? session?.user?.email ?? "User";
@@ -93,9 +124,11 @@ export function Navbar() {
               onClick={() => setCartOpen(true)}
             >
               <ShoppingCart className="h-5 w-5" />
-              <Badge className="absolute -right-1 -top-1 h-5 w-5 rounded-full bg-primary p-0 text-xs text-primary-foreground">
-                3
-              </Badge>
+              {cartCount > 0 && (
+                <Badge className="absolute -right-1 -top-1 h-5 w-5 rounded-full bg-primary p-0 text-xs text-primary-foreground">
+                  {cartCount}
+                </Badge>
+              )}
             </Button>
 
             {status === "loading" ? (
@@ -253,7 +286,11 @@ export function Navbar() {
       </header>
 
       {/* Cart Sidebar */}
-      <CartSidebar isOpen={cartOpen} onClose={() => setCartOpen(false)} />
+      <CartSidebar
+        isOpen={cartOpen}
+        onClose={() => setCartOpen(false)}
+        onCartUpdate={setCartCount}
+      />
     </>
   );
 }
