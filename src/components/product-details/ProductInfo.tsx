@@ -1,8 +1,6 @@
 "use client";
 
 import React from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,48 +16,19 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { Product } from "@/types/product.types";
-import { addToCart } from "@/service/cart.service";
 
 interface ProductInfoProps {
   product: Product;
 }
 
 export function ProductInfo({ product }: ProductInfoProps) {
-  const { data: session } = useSession();
-  const router = useRouter();
   const [quantity, setQuantity] = React.useState(1);
-  const [adding, setAdding] = React.useState(false);
 
   const handleQuantityChange = (type: "increase" | "decrease") => {
     if (type === "increase" && quantity < product.stock) {
       setQuantity(quantity + 1);
     } else if (type === "decrease" && quantity > 1) {
       setQuantity(quantity - 1);
-    }
-  };
-
-  // Add to cart handler
-  const handleAddToCart = async () => {
-    // Check if user is logged in
-    if (!session?.user) {
-      router.push(`/login?redirect=/products/${product._id}`);
-      return;
-    }
-
-    try {
-      setAdding(true);
-      await addToCart(product._id, quantity);
-      // Success feedback
-      alert(`${quantity} item(s) added to cart!`);
-      // Trigger cart update event
-      window.dispatchEvent(new Event("cartUpdated"));
-      // Reset quantity to 1
-      setQuantity(1);
-    } catch (error) {
-      console.error("Failed to add to cart:", error);
-      alert("Failed to add to cart. Please try again.");
-    } finally {
-      setAdding(false);
     }
   };
 
@@ -158,20 +127,10 @@ export function ProductInfo({ product }: ProductInfoProps) {
         <Button
           size="lg"
           className="flex-1 gap-2"
-          disabled={product.stock === 0 || adding}
-          onClick={handleAddToCart}
+          disabled={product.stock === 0}
         >
-          {adding ? (
-            <>
-              <span className="loading loading-spinner loading-sm" />
-              Adding...
-            </>
-          ) : (
-            <>
-              <ShoppingCart className="h-5 w-5" />
-              Add to Cart
-            </>
-          )}
+          <ShoppingCart className="h-5 w-5" />
+          Add to Cart
         </Button>
         <Button variant="outline" size="lg">
           <Heart className="h-5 w-5" />
