@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
 import { Product } from "@/types/product.types";
 import { Review } from "@/types/review.types";
-import { reviewService } from "@/service/review.service";
+import { getProductReviews, addReview } from "@/service/review.service";
 import { useSession } from "next-auth/react";
 
 interface ProductTabsProps {
@@ -32,7 +32,7 @@ export function ProductTabs({ product, productId }: ProductTabsProps) {
     const fetchReviews = async () => {
       try {
         setReviewsLoading(true);
-        const data = await reviewService.getProductReviews(productId);
+        const data = await getProductReviews(productId);
         setReviews(data.data || []);
         setReviewsTotal(data.meta?.total || 0);
       } catch (error) {
@@ -68,7 +68,7 @@ export function ProductTabs({ product, productId }: ProductTabsProps) {
 
     try {
       setSubmittingReview(true);
-      await reviewService.addReview(
+      await addReview(
         {
           productId,
           rating: reviewRating,
@@ -82,7 +82,7 @@ export function ProductTabs({ product, productId }: ProductTabsProps) {
       setReviewComment("");
 
       // Refetch reviews
-      const data = await reviewService.getProductReviews(productId);
+      const data = await getProductReviews(productId);
       setReviews(data.data || []);
       setReviewsTotal(data.meta?.total || 0);
 

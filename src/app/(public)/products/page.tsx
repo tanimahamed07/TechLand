@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import { getCategoryTree } from "@/service/category.service";
-import { productService } from "@/service/product.service";
+import { getAllProducts } from "@/service/product.service";
 import { ProductCard } from "@/components/products/ProductCard";
 import { Product } from "@/types/product.types";
 import ProductLoadingSkeleton from "@/components/products/ProductLoadingSclaton";
@@ -71,7 +71,7 @@ export default function ProductsPage() {
         // কিন্তু backend category filter ObjectId expect করে, slug না
         // তাই আমরা সব products fetch করে client-side filter করব
 
-        const productData = await productService.getAllProducts(params);
+        const productData = await getAllProducts(params);
         setProducts(productData.data || []);
         setTotalPages(productData.meta?.totalPages || 1);
         setTotalProducts(productData.meta?.total || 0);

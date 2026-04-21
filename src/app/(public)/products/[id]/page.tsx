@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
-import { productService } from "@/service/product.service";
+import { getProductById, getAllProducts } from "@/service/product.service";
 import { Product } from "@/types/product.types";
 import { ProductImageGallery } from "@/components/product-details/ProductImageGallery";
 import { ProductInfo } from "@/components/product-details/ProductInfo";
@@ -25,12 +25,12 @@ export default function ProductDetailsPage() {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        const data = await productService.getProductById(productId);
+        const data = await getProductById(productId);
         setProduct(data);
 
         // Related products fetch করা (same category)
         if (data.category?._id) {
-          const relatedData = await productService.getAllProducts({
+          const relatedData = await getAllProducts({
             limit: 20, // আরো বেশি products fetch করা
           });
           // Filter করে same category এর products নেওয়া (current product বাদে)
