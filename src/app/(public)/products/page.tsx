@@ -1,45 +1,20 @@
 "use client";
 
-import * as React from "react";
-import { useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
+import { useEffect, useMemo, useState } from "react";
+
+import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Heart, ShoppingCart, X } from "lucide-react";
+import { X } from "lucide-react";
 import { getCategoryTree } from "@/service/category.service";
 import { productService } from "@/service/product.service";
-import Image from "next/image";
+import { ProductCard } from "@/components/products/ProductCard";
+import { Product } from "@/types/product.types";
+import ProductLoadingSkeleton from "@/components/products/ProductLoadingSclaton";
+import Sidebar from "@/components/products/Sidebar";
 
-interface Product {
-  _id: string;
-  title: string;
-  name: string;
-  brand: string;
-  price: number;
-  originalPrice?: number;
-  discount?: number;
-  rating: number;
-  reviewCount: number;
-  numReviews: number;
-  image: string;
-  images: string[];
-  category: {
-    _id: string;
-    name: string;
-    slug: string;
-    parentCategory?: {
-      _id: string;
-      name: string;
-      slug: string;
-    };
-  };
-}
-
-interface CategoryTree {
+export interface CategoryTree {
   _id: string;
   name: string;
   slug: string;
@@ -51,49 +26,29 @@ interface CategoryTree {
 }
 
 export default function ProductsPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get("category");
   const subcategoryParam = searchParams.get("subcategory");
   const brandParam = searchParams.get("brand");
 
-  const [categories, setCategories] = React.useState<CategoryTree[]>([]);
-  const [products, setProducts] = React.useState<Product[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [selectedCategory, setSelectedCategory] = React.useState<string | null>(
-    subcategoryParam || categoryParam,
-  );
-  const [selectedBrand, setSelectedBrand] = React.useState<string | null>(
-    brandParam,
-  );
-  const [searchQuery, setSearchQuery] = React.useState("");
-  const [sortBy, setSortBy] = React.useState("newest");
+  const [categories, setCategories] = useState<CategoryTree[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
 
   // Pagination states
-  const [currentPage, setCurrentPage] = React.useState(1);
-  const [totalPages, setTotalPages] = React.useState(1);
-  const [totalProducts, setTotalProducts] = React.useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalProducts, setTotalProducts] = useState(0);
   const itemsPerPage = 12;
 
-  // URL params থেকে filter update করা
-  React.useEffect(() => {
-    const categoryFromUrl = subcategoryParam || categoryParam;
-    const brandFromUrl = brandParam;
+  // URL params থেকে সরাসরি derive করা (no state sync needed)
+  const selectedCategory = subcategoryParam || categoryParam;
+  const selectedBrand = brandParam;
 
-    if (categoryFromUrl && categoryFromUrl !== selectedCategory) {
-      setSelectedCategory(categoryFromUrl);
-    }
-    if (brandFromUrl && brandFromUrl !== selectedBrand) {
-      setSelectedBrand(brandFromUrl);
-    }
-  }, [
-    categoryParam,
-    subcategoryParam,
-    brandParam,
-    selectedCategory,
-    selectedBrand,
-  ]);
-
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -127,7 +82,7 @@ export default function ProductsPage() {
     fetchData();
   }, [currentPage]);
 
-  const filteredProducts = React.useMemo(() => {
+  const filteredProducts = useMemo(() => {
     let filtered = [...products];
 
     // Category দিয়ে filter করা (main category অথবা subcategory)
@@ -162,7 +117,7 @@ export default function ProductsPage() {
     // Search query দিয়ে filter করা
     if (searchQuery) {
       filtered = filtered.filter((product) =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()),
+        product.title.toLowerCase().includes(searchQuery.toLowerCase()),
       );
     }
 
@@ -178,9 +133,36 @@ export default function ProductsPage() {
     return filtered;
   }, [products, selectedCategory, selectedBrand, searchQuery, sortBy]);
 
+  const updateUrlParams = (updates: {
+    category?: string | null;
+    subcategory?: string | null;
+    brand?: string | null;
+  }) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (updates.category === null) {
+      params.delete("category");
+    } else if (updates.category !== undefined) {
+      params.set("category", updates.category);
+    }
+
+    if (updates.subcategory === null) {
+      params.delete("subcategory");
+    } else if (updates.subcategory !== undefined) {
+      params.set("subcategory", updates.subcategory);
+    }
+
+    if (updates.brand === null) {
+      params.delete("brand");
+    } else if (updates.brand !== undefined) {
+      params.set("brand", updates.brand);
+    }
+
+    router.push(`/products?${params.toString()}`);
+  };
+
   const clearFilters = () => {
-    setSelectedCategory(null);
-    setSelectedBrand(null);
+    router.push("/products");
     setSearchQuery("");
   };
 
@@ -208,142 +190,14 @@ export default function ProductsPage() {
 
         <div className="flex gap-8">
           {/* Sidebar Filters */}
-          <aside className="hidden w-64 shrink-0 lg:block">
-            <Card>
-              <CardContent className="p-6">
-                <div className="mb-4 flex items-center justify-between">
-                  <h3 className="font-semibold">Filters</h3>
-                  {(selectedCategory || selectedBrand) && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={clearFilters}
-                      className="h-auto p-0 text-xs text-primary hover:text-primary/80"
-                    >
-                      Clear all
-                    </Button>
-                  )}
-                </div>
-
-                <div className="space-y-6">
-                  {/* Category Filter */}
-                  <div>
-                    <h4 className="mb-3 text-sm font-medium uppercase text-muted-foreground">
-                      Category
-                    </h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="all-categories"
-                          checked={!selectedCategory}
-                          onCheckedChange={() => setSelectedCategory(null)}
-                        />
-                        <Label
-                          htmlFor="all-categories"
-                          className="cursor-pointer text-sm font-normal"
-                        >
-                          All Categories
-                        </Label>
-                      </div>
-                      {categories.map((category) => (
-                        <div key={category._id}>
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id={category.slug}
-                              checked={selectedCategory === category.slug}
-                              onCheckedChange={() =>
-                                setSelectedCategory(category.slug)
-                              }
-                            />
-                            <Label
-                              htmlFor={category.slug}
-                              className="cursor-pointer text-sm font-normal"
-                            >
-                              {category.name}
-                            </Label>
-                          </div>
-                          {category.children &&
-                            category.children.length > 0 && (
-                              <div className="ml-6 mt-2 space-y-2">
-                                {category.children.map((sub) => (
-                                  <div
-                                    key={sub._id}
-                                    className="flex items-center space-x-2"
-                                  >
-                                    <Checkbox
-                                      id={sub.slug}
-                                      checked={selectedCategory === sub.slug}
-                                      onCheckedChange={() =>
-                                        setSelectedCategory(sub.slug)
-                                      }
-                                    />
-                                    <Label
-                                      htmlFor={sub.slug}
-                                      className="cursor-pointer text-sm font-normal text-muted-foreground"
-                                    >
-                                      {sub.name}
-                                    </Label>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Brand Filter */}
-                  <div>
-                    <h4 className="mb-3 text-sm font-medium uppercase text-muted-foreground">
-                      Brand
-                    </h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="all-brands"
-                          checked={!selectedBrand}
-                          onCheckedChange={() => setSelectedBrand(null)}
-                        />
-                        <Label
-                          htmlFor="all-brands"
-                          className="cursor-pointer text-sm font-normal"
-                        >
-                          All Brands
-                        </Label>
-                      </div>
-                      {/* সব products থেকে unique brands বের করা */}
-                      {Array.from(
-                        new Set(
-                          products
-                            .map((p) => p.brand)
-                            .filter((b) => b && b.trim() !== ""),
-                        ),
-                      )
-                        .sort()
-                        .map((brand) => (
-                          <div
-                            key={brand}
-                            className="flex items-center space-x-2"
-                          >
-                            <Checkbox
-                              id={`brand-${brand}`}
-                              checked={selectedBrand === brand}
-                              onCheckedChange={() => setSelectedBrand(brand)}
-                            />
-                            <Label
-                              htmlFor={`brand-${brand}`}
-                              className="cursor-pointer text-sm font-normal"
-                            >
-                              {brand}
-                            </Label>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </aside>
+          <Sidebar
+            categories={categories}
+            products={products}
+            selectedCategory={selectedCategory}
+            selectedBrand={selectedBrand}
+            updateUrlParams={updateUrlParams}
+            clearFilters={clearFilters}
+          />
 
           {/* Products Grid */}
           <div className="flex-1">
@@ -362,7 +216,9 @@ export default function ProductsPage() {
                   <Badge variant="secondary" className="gap-1">
                     Category
                     <button
-                      onClick={() => setSelectedCategory(null)}
+                      onClick={() =>
+                        updateUrlParams({ category: null, subcategory: null })
+                      }
                       className="ml-1"
                     >
                       <X className="h-3 w-3" />
@@ -373,7 +229,7 @@ export default function ProductsPage() {
                   <Badge variant="secondary" className="gap-1">
                     Brand: {selectedBrand}
                     <button
-                      onClick={() => setSelectedBrand(null)}
+                      onClick={() => updateUrlParams({ brand: null })}
                       className="ml-1"
                     >
                       <X className="h-3 w-3" />
@@ -397,17 +253,8 @@ export default function ProductsPage() {
             </div>
 
             {loading ? (
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                {[...Array(10)].map((_, i) => (
-                  <Card key={i} className="overflow-hidden">
-                    <div className="aspect-square animate-pulse bg-muted" />
-                    {/* Top padding removed from skeleton */}
-                    <CardContent className="px-4 pt-0 pb-4">
-                      <div className="mt-4 h-4 animate-pulse rounded bg-muted" />
-                      <div className="mt-2 h-3 w-2/3 animate-pulse rounded bg-muted" />
-                    </CardContent>
-                  </Card>
-                ))}
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
+                <ProductLoadingSkeleton></ProductLoadingSkeleton>
               </div>
             ) : filteredProducts.length === 0 ? (
               <div className="flex min-h-[400px] items-center justify-center">
@@ -416,89 +263,7 @@ export default function ProductsPage() {
             ) : (
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
                 {filteredProducts.map((product) => (
-                  <Link key={product._id} href={`/products/${product._id}`}>
-                    <Card className="group overflow-hidden transition-shadow hover:shadow-lg">
-                      <div className="relative aspect-square overflow-hidden bg-muted">
-                        {product.discount && (
-                          <Badge className="absolute left-3 top-3 z-10 bg-pink-500 text-white">
-                            -{product.discount}%
-                          </Badge>
-                        )}
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                          }}
-                          className="absolute right-3 top-3 z-10 rounded-full bg-white p-2 shadow-md transition hover:bg-pink-50"
-                        >
-                          <Heart className="h-4 w-4 text-gray-600" />
-                        </button>
-                        <Image
-                          src={
-                            (product.images && product.images[0]) ||
-                            product.image ||
-                            "https://placehold.co/400x400/e2e8f0/64748b?text=No+Image"
-                          }
-                          alt={product.title || product.name || "Product image"}
-                          fill
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                          className="object-cover transition-transform group-hover:scale-105"
-                        />
-                      </div>
-
-                      {/* pt-0: Image er thik niche jei 16px padding chilo sheta remove korbe. 
-              pb-4: Nicher padding (16px) thakbe jate button ta kineer sathe lege na jay.
-          */}
-                      <CardContent className="px-4 pt-0 pb-4">
-                        <p className="mt-3 text-xs font-medium uppercase text-muted-foreground">
-                          {product.brand}
-                        </p>
-                        <h3 className="mt-1 line-clamp-2 text-sm font-medium text-foreground">
-                          {product.title || product.name}
-                        </h3>
-                        <div className="mt-2 flex items-center gap-1">
-                          <div className="flex">
-                            {[...Array(5)].map((_, i) => (
-                              <span
-                                key={i}
-                                className={`text-sm ${
-                                  i < Math.floor(product.rating)
-                                    ? "text-yellow-400"
-                                    : "text-gray-300"
-                                }`}
-                              >
-                                ★
-                              </span>
-                            ))}
-                          </div>
-                          <span className="text-xs text-muted-foreground">
-                            ({product.numReviews || product.reviewCount || 0})
-                          </span>
-                        </div>
-                        <div className="mt-3 flex items-center gap-2">
-                          <p className="text-lg font-bold text-primary">
-                            ৳{product.price.toLocaleString()}
-                          </p>
-                          {product.originalPrice && (
-                            <p className="text-sm text-muted-foreground line-through">
-                              ৳{product.originalPrice.toLocaleString()}
-                            </p>
-                          )}
-                        </div>
-                        <Button
-                          className="mt-4 w-full gap-2"
-                          size="sm"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                          }}
-                        >
-                          <ShoppingCart className="h-4 w-4" />
-                          Add to Cart
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </Link>
+                  <ProductCard key={product._id} product={product} />
                 ))}
               </div>
             )}
