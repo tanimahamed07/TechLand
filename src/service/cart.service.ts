@@ -34,7 +34,7 @@ export const getCart = async (): Promise<ICart> => {
   if (!response.ok) throw new Error(result.message || "Failed to fetch cart");
 
   // Empty cart হলে default structure return করা
-  return result.data || ({ items: [], totalAmount: 0 } as ICart);
+  return result.data || ({ items: [], totalAmount: 0 } as unknown as ICart);
 };
 
 // ২. কার্টে প্রোডাক্ট যোগ করা (Add to Cart)
