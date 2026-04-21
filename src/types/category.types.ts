@@ -24,6 +24,7 @@ export interface CategoryTree {
   description?: string;
   image?: string;
   children: CategoryTree[];
+  brands?: string[]; // Category এর অধীনে available brands
 }
 
 // API Response Types

@@ -1,7 +1,5 @@
-// User Role Type
 export type UserRole = "user" | "admin" | "super-admin";
 
-// Address Interface
 export interface Address {
   street?: string;
   city?: string;
@@ -10,7 +8,6 @@ export interface Address {
   zip?: string;
 }
 
-// User Profile Interface
 export interface UserProfile {
   _id: string;
   name: string;
@@ -23,7 +20,7 @@ export interface UserProfile {
   updatedAt?: string;
 }
 
-// API Response Types
+// API রেসপন্স টাইপগুলো সার্ভিসে ব্যবহার করার জন্য
 export interface UserResponse {
   success: boolean;
   message: string;
@@ -40,12 +37,4 @@ export interface UsersResponse {
     total: number;
     totalPages: number;
   };
-}
-
-// User Update Payload
-export interface UpdateUserPayload {
-  name?: string;
-  phone?: string;
-  avatar?: string;
-  address?: Address;
 }

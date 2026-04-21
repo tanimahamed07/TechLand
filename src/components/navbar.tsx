@@ -1,8 +1,10 @@
 "use client";
 
-import * as React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Search, Heart, ShoppingCart, Menu } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -12,34 +14,19 @@ import {
   DropdownMenuTrigger,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { ThemeToggle } from "./theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { signOut, useSession } from "next-auth/react";
+import { ThemeToggle } from "./theme-toggle";
 import { getCategoryTree } from "@/service/category.service";
-
-interface SubCategory {
-  _id: string;
-  name: string;
-  slug: string;
-}
-
-interface CategoryTree {
-  _id: string;
-  name: string;
-  slug: string;
-  image?: string;
-  children: SubCategory[];
-  brands: string[];
-}
+import { CategoryTree } from "@/types/category.types";
 
 export function Navbar() {
-  const [openMenu, setOpenMenu] = React.useState<string | null>(null);
-  const [categories, setCategories] = React.useState<CategoryTree[]>([]);
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [categories, setCategories] = useState<CategoryTree[]>([]);
   const [loading, setLoading] = React.useState(true);
   const { data: session, status } = useSession();
 
   // Fetch categories from API
-  React.useEffect(() => {
+useEffect(() => {
     const fetchCategories = async () => {
       try {
         const data = await getCategoryTree();
@@ -55,7 +42,7 @@ export function Navbar() {
     fetchCategories();
   }, []);
 
-  const initials = React.useMemo(() => {
+  const initials = useMemo(() => {
     const name = session?.user?.name ?? session?.user?.email ?? "User";
     return name
       .split(" ")
@@ -123,8 +110,8 @@ export function Navbar() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="min-w-[150px] p-1" align="end">
-                <DropdownMenuItem className="cursor-pointer">
-                  Profile
+                <DropdownMenuItem asChild className="cursor-pointer">
+                  <Link href="/dashboard/profile">Profile</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer">
                   Orders
