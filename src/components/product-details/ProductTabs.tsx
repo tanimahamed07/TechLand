@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -28,7 +28,7 @@ export function ProductTabs({ product, productId }: ProductTabsProps) {
   const [submittingReview, setSubmittingReview] = React.useState(false);
 
   // Reviews fetch করা
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchReviews = async () => {
       try {
         setReviewsLoading(true);
