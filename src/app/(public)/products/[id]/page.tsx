@@ -20,7 +20,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { productService } from "@/service/product.service";
-import { reviewService, Review } from "@/service/review.service";
+import { reviewService } from "@/service/review.service";
+import type { Review } from "@/types/review.types";
 import { useSession } from "next-auth/react";
 
 interface Product {

@@ -1,37 +1,12 @@
+import type {
+  Review,
+  ReviewsResponse,
+  CreateReviewPayload,
+  UpdateReviewPayload,
+  SingleReviewResponse,
+} from "@/types/review.types";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001";
-
-export interface Review {
-  _id: string;
-  userId: {
-    _id: string;
-    name: string;
-    avatar?: string;
-  };
-  productId: string;
-  rating: number;
-  comment: string;
-  helpful: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ReviewsResponse {
-  success: boolean;
-  message: string;
-  data: Review[];
-  meta?: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-}
-
-export interface AddReviewData {
-  productId: string;
-  rating: number;
-  comment: string;
-}
 
 export const reviewService = {
   // Get reviews for a specific product
@@ -42,6 +17,9 @@ export const reviewService = {
   ): Promise<ReviewsResponse> {
     const response = await fetch(
       `${API_URL}/api/v1/reviews/product/${productId}?page=${page}&limit=${limit}`,
+      {
+        cache: "no-store",
+      },
     );
 
     if (!response.ok) {
@@ -53,9 +31,9 @@ export const reviewService = {
 
   // Add a new review (requires authentication)
   async addReview(
-    reviewData: AddReviewData,
+    reviewData: CreateReviewPayload,
     token: string,
-  ): Promise<{ success: boolean; message: string; data: Review }> {
+  ): Promise<SingleReviewResponse> {
     const response = await fetch(`${API_URL}/api/v1/reviews`, {
       method: "POST",
       headers: {
@@ -74,13 +52,12 @@ export const reviewService = {
   },
 
   // Get current user's reviews (requires authentication)
-  async getMyReviews(
-    token: string,
-  ): Promise<{ success: boolean; message: string; data: Review[] }> {
+  async getMyReviews(token: string): Promise<ReviewsResponse> {
     const response = await fetch(`${API_URL}/api/v1/reviews/my`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
+      cache: "no-store",
     });
 
     if (!response.ok) {
@@ -93,9 +70,9 @@ export const reviewService = {
   // Update a review (requires authentication)
   async updateReview(
     reviewId: string,
-    updateData: { rating?: number; comment?: string },
+    updateData: UpdateReviewPayload,
     token: string,
-  ): Promise<{ success: boolean; message: string; data: Review }> {
+  ): Promise<SingleReviewResponse> {
     const response = await fetch(`${API_URL}/api/v1/reviews/${reviewId}`, {
       method: "PATCH",
       headers: {
@@ -133,3 +110,6 @@ export const reviewService = {
     return response.json();
   },
 };
+
+// Re-export types for backward compatibility
+export type { Review, ReviewsResponse, CreateReviewPayload };

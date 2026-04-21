@@ -14,6 +14,9 @@ import { Product } from "@/types/product.types";
 import ProductLoadingSkeleton from "@/components/products/ProductLoadingSclaton";
 import Sidebar from "@/components/products/Sidebar";
 
+// Sort options type - শুধু এই page এ ব্যবহার হয়
+type SortOption = "newest" | "price-low" | "price-high";
+
 export interface CategoryTree {
   _id: string;
   name: string;
@@ -36,7 +39,7 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("newest");
+  const [sortBy, setSortBy] = useState<SortOption>("newest");
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -242,7 +245,7 @@ export default function ProductsPage() {
                 <span className="text-sm text-muted-foreground">Sort:</span>
                 <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
+                  onChange={(e) => setSortBy(e.target.value as SortOption)}
                   className="rounded-md border border-input bg-background px-3 py-1.5 text-sm"
                 >
                   <option value="newest">Newest</option>

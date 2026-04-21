@@ -4,35 +4,28 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
-
-interface Product {
-  _id: string;
-  title?: string;
-  name?: string;
-  brand?: string;
-  price: number;
-  originalPrice?: number;
-  discount?: number;
-  rating: number;
-  reviewCount?: number;
-  numReviews?: number;
-  image?: string;
-  images?: string[];
-}
+import type { Product } from "@/types/product.types";
 
 interface ProductCardProps {
   product: Product;
 }
 
 export const ProductCard = ({ product }: ProductCardProps) => {
+  // Calculate discount percentage if discountPrice exists
+  const discount = product.discountPrice
+    ? Math.round(
+        ((product.price - product.discountPrice) / product.price) * 100,
+      )
+    : 0;
+
   return (
     <div>
       <Link key={product._id} href={`/products/${product._id}`}>
         <Card className="group overflow-hidden transition-shadow hover:shadow-lg">
           <div className="relative aspect-square overflow-hidden bg-muted">
-            {product.discount && (
+            {discount > 0 && (
               <Badge className="absolute left-3 top-3 z-10 bg-pink-500 text-white">
-                -{product.discount}%
+                -{discount}%
               </Badge>
             )}
             <button
@@ -46,11 +39,10 @@ export const ProductCard = ({ product }: ProductCardProps) => {
             </button>
             <Image
               src={
-                (product.images && product.images[0]) ||
-                product.image ||
+                product.images[0] ||
                 "https://placehold.co/400x400/e2e8f0/64748b?text=No+Image"
               }
-              alt={product.title || product.name || "Product image"}
+              alt={product.title || "Product image"}
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
               className="object-cover transition-transform group-hover:scale-105"
@@ -65,7 +57,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
               {product.brand}
             </p>
             <h3 className="mt-1 line-clamp-2 text-sm font-medium text-foreground">
-              {product.title || product.name}
+              {product.title}
             </h3>
             <div className="mt-2 flex items-center gap-1">
               <div className="flex">
@@ -83,16 +75,16 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                 ))}
               </div>
               <span className="text-xs text-muted-foreground">
-                ({product.numReviews || product.reviewCount || 0})
+                ({product.numReviews || 0})
               </span>
             </div>
             <div className="mt-3 flex items-center gap-2">
               <p className="text-lg font-bold text-primary">
-                ৳{product.price.toLocaleString()}
+                ৳{(product.discountPrice || product.price).toLocaleString()}
               </p>
-              {product.originalPrice && (
+              {product.discountPrice && (
                 <p className="text-sm text-muted-foreground line-through">
-                  ৳{product.originalPrice.toLocaleString()}
+                  ৳{product.price.toLocaleString()}
                 </p>
               )}
             </div>

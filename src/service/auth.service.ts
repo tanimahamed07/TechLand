@@ -1,4 +1,8 @@
-import type { AuthResponse, LoginPayload, RegisterPayload } from "@/types/auth";
+import type {
+  AuthResponse,
+  LoginPayload,
+  RegisterPayload,
+} from "@/types/auth.types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
 

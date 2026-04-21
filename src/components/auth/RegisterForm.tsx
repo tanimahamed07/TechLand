@@ -20,7 +20,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { register } from "@/service/auth.service";
-import type { RegisterPayload } from "@/types/auth";
+import type { RegisterPayload } from "@/types/auth.types";
 
 const RegisterPage = () => {
   const router = useRouter();

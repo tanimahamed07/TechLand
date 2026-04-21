@@ -27,7 +27,9 @@ export const productService = {
     }
 
     const url = `${API_URL}/api/v1/products${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      cache: "no-store",
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to fetch products: ${response.statusText}`);
@@ -37,8 +39,10 @@ export const productService = {
   },
 
   // Get featured products
-  async getFeaturedProducts(): Promise<Product[]> {
-    const response = await fetch(`${API_URL}/api/v1/products/featured`);
+  async getFeaturedProducts(): Promise<ProductsResponse> {
+    const response = await fetch(`${API_URL}/api/v1/products/featured`, {
+      cache: "no-store",
+    });
 
     if (!response.ok) {
       throw new Error(
@@ -46,13 +50,14 @@ export const productService = {
       );
     }
 
-    const result = await response.json();
-    return result.data;
+    return response.json();
   },
 
   // Get product by ID
   async getProductById(id: string): Promise<Product> {
-    const response = await fetch(`${API_URL}/api/v1/products/${id}`);
+    const response = await fetch(`${API_URL}/api/v1/products/${id}`, {
+      cache: "no-store",
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to fetch product: ${response.statusText}`);
@@ -85,13 +90,5 @@ export const productService = {
 };
 
 // Export individual functions for backward compatibility
-export const getCategoryTree = async () => {
-  const response = await fetch("/api/categories");
-  if (!response.ok) {
-    throw new Error("Failed to fetch categories");
-  }
-  return response.json();
-};
-
 export const getProductsByCategory =
   productService.getProductsByCategory.bind(productService);
