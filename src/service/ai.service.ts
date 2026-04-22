@@ -65,3 +65,46 @@ export const generateTags = async (payload: {
     throw new Error(result.message || "Failed to generate tags");
   return result;
 };
+
+
+// --- চ্যাটবক্সের জন্য ইন্টারফেস ---
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface ChatPayload {
+  message: string;
+  history: ChatMessage[];
+}
+
+export interface ChatResponse {
+  success: boolean;
+  message: string;
+  data: {
+    reply: string;
+  };
+}
+
+// AI Assistant-এর সাথে চ্যাট করার জন্য মেইন ফাংশন
+export const chatWithAssistant = async (
+  payload: ChatPayload
+): Promise<ChatResponse> => {
+  const token = await getAuthToken();
+  const response = await fetch(`${API_URL}/api/v1/ai/chat`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const result: ChatResponse = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to get AI response");
+  }
+
+  return result;
+};

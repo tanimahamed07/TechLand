@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles, Copy, Check, Hash, X } from "lucide-center"; // Lucide icons
 import {
   Sparkles as SparklesIcon,
   Copy as CopyIcon,
