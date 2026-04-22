@@ -14,6 +14,7 @@ import {
   LogOut,
   ChevronRight,
   ChevronDown,
+  Sparkles,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -41,6 +42,15 @@ const navLinks = [
   { href: "/admin-panel/users", label: "Users", icon: Users },
   { href: "/admin-panel/reviews", label: "Reviews", icon: Star },
   { href: "/admin-panel/categories", label: "Categories", icon: Tag },
+  {
+    href: "/admin-panel/ai-tools",
+    label: "Products",
+    icon: Sparkles,
+    children: [
+      { href: "/admin-panel/ai-tools/description", label: "Generator Description" },
+      { href: "/admin-panel/ai-tools/tags", label: "Generate Tags" },
+    ],
+  },
 ];
 
 export default function AdminLayout({
