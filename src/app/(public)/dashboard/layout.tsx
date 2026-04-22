@@ -1,7 +1,9 @@
 "use client";
 
-import { AvatarFallback, AvatarImage,Avatar } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
+import React, { useEffect } from "react";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import {
   ExternalLink,
   Heart,
@@ -10,10 +12,8 @@ import {
   Package,
   User,
 } from "lucide-react";
-import { useSession } from "next-auth/react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import React, { useEffect } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/utils/cn";
 
 const ADMIN_URL = process.env.NEXT_PUBLIC_ADMIN_URL || "";
 
@@ -30,28 +30,30 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const { data: session, status } = useSession();
+  const router = useRouter();
+  const pathname = usePathname();
+
   const user = session?.user;
+
   const initials = React.useMemo(() => {
-    const name = session?.user?.name ?? session?.user?.email ?? "User";
+    const name = user?.name ?? user?.email ?? "U";
     return name
       .split(" ")
-      .map((part) => part[0])
+      .map((p) => p[0])
       .slice(0, 2)
       .join("")
       .toUpperCase();
-  }, [session]);
-  const router = useRouter();
-  const pathname = usePathname();
-  const isLoading = status == "loading";
+  }, [user]);
+
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (status !== "loading" && !user) {
       router.replace(`/login?redirect=${pathname}`);
     }
-  }, [user, isLoading, router, pathname]);
+  }, [user, status, router, pathname]);
 
-  if (isLoading) {
+  if (status === "loading") {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
+      <div className="flex min-h-[60vh] items-center justify-center">
         <span className="loading loading-spinner loading-lg text-primary" />
       </div>
     );
@@ -60,24 +62,21 @@ export default function DashboardLayout({
   if (!user) return null;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-col md:flex-row gap-6">
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="flex flex-col gap-6 md:flex-row">
         {/* Sidebar — desktop */}
-        <aside className="hidden md:flex flex-col gap-1 w-52 shrink-0">
-          <div className="flex items-center gap-3 px-3 py-4 mb-2">
-            <div className="avatar">
-              <Avatar className="w-10 rounded-full ring ring-primary ring-offset-1 ring-offset-base-100">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <AvatarImage
-                  src={session.user.image ?? "https://github.com/shadcn.png"}
-                  alt={session.user.name ?? "User avatar"}
-                />
-                <AvatarFallback>{initials}</AvatarFallback>
-              </Avatar>
-            </div>
+        <aside className="hidden w-52 shrink-0 flex-col gap-1 md:flex">
+          {/* User info - session theke */}
+          <div className="mb-2 flex items-center gap-3 px-3 py-4">
+            <Avatar className="h-12 w-12 rounded-full border-2 border-primary">
+              <AvatarImage src={user.image ?? ""} alt={user.name ?? "User"} />
+              <AvatarFallback className="bg-primary/10 font-bold text-primary">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
             <div className="min-w-0">
-              <p className="font-bold text-sm truncate">{user.name}</p>
-              <p className="text-xs text-base-content/50 capitalize">
+              <p className="truncate text-sm font-bold">{user.name}</p>
+              <p className="text-xs capitalize text-muted-foreground">
                 {user.role}
               </p>
             </div>
@@ -91,7 +90,7 @@ export default function DashboardLayout({
                 "flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors",
                 pathname === href
                   ? "bg-primary/10 text-primary"
-                  : "text-base-content/60 hover:bg-base-200 hover:text-base-content",
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
@@ -99,31 +98,31 @@ export default function DashboardLayout({
             </Link>
           ))}
 
-          {user.role === "admin" && ADMIN_URL && (
-            <a
-              href={ADMIN_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors text-base-content/60 hover:bg-base-200 hover:text-base-content"
+          {(user.role === "admin" || user.role === "super-admin") && (
+            <Link
+              href="/admin-panel"
+              className={cn(
+                "flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors",
+                "text-primary hover:bg-primary/5",
+              )}
             >
               <LayoutDashboard className="h-4 w-4 shrink-0" />
               Admin Panel
-              <ExternalLink className="h-3 w-3 ml-auto opacity-50" />
-            </a>
+            </Link>
           )}
         </aside>
 
         {/* Mobile tab strip */}
-        <div className="flex md:hidden overflow-x-auto scrollbar-none gap-1 border-b border-base-300 pb-3 mb-1">
+        <div className="scrollbar-none mb-1 flex gap-1 overflow-x-auto border-b border-border pb-3 md:hidden">
           {sidebarLinks.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
               className={cn(
-                "flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors shrink-0",
+                "flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2 text-sm font-medium transition-colors",
                 pathname === href
                   ? "bg-primary/10 text-primary"
-                  : "text-base-content/60 hover:bg-base-200",
+                  : "text-muted-foreground hover:bg-muted",
               )}
             >
               <Icon className="h-3.5 w-3.5" />
@@ -133,7 +132,7 @@ export default function DashboardLayout({
         </div>
 
         {/* Main content */}
-        <main className="flex-1 min-w-0">{children}</main>
+        <main className="min-w-0 flex-1">{children}</main>
       </div>
     </div>
   );

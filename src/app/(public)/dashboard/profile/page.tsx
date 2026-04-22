@@ -88,10 +88,16 @@ export default function ProfilePage() {
         address: { street, city, country, zip },
       });
       setProfile(updated);
+      // Session update - name, image, role sync kora
       await update({
-        ...session,
-        user: { ...session?.user, name: updated.name, image: updated.avatar },
+        user: {
+          name: updated.name,
+          image: updated.avatar,
+          role: updated.role ?? session?.user?.role,
+        },
       });
+      // Dashboard layout ke notify kora fresh data load korte
+      window.dispatchEvent(new Event("profileUpdated"));
       toast.success("Profile updated successfully");
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Update failed");

@@ -2,7 +2,13 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Search, Heart, ShoppingCart, Menu } from "lucide-react";
+import {
+  Search,
+  Heart,
+  ShoppingCart,
+  Menu,
+  LayoutDashboard,
+} from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 
 import { Button } from "@/components/ui/button";
@@ -188,8 +194,29 @@ export function Navbar() {
                     <Link href="/dashboard/my-orders">My Orders</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link href="/dashboard/my-reviews">My Reviews</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer">
                     <Link href="/dashboard/wishlist">Wishlist</Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link href="/dashboard/wishlist">Wishlist</Link>
+                  </DropdownMenuItem>
+                  {/* Role based Admin Panel link */}
+                  {(session.user.role === "admin" ||
+                    session.user.role === "super-admin") && (
+                    <DropdownMenuItem
+                      asChild
+                      className="cursor-pointer text-primary"
+                    >
+                      <Link
+                        href="admin-panel"
+                        className="flex items-center gap-2"
+                      >
+                        Admin Panel
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem
                     onSelect={() => signOut()}
                     className="cursor-pointer text-destructive"
