@@ -20,6 +20,23 @@ export interface UserProfile {
   updatedAt?: string;
 }
 
+export interface UpdateProfileData {
+  name?: string;
+  phone?: string;
+  avatar?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    country?: string;
+    zip?: string;
+  };
+}
+
+export interface UpdatePasswordData {
+  currentPassword: string;
+  newPassword: string;
+}
+
 // API রেসপন্স টাইপগুলো সার্ভিসে ব্যবহার করার জন্য
 export interface UserResponse {
   success: boolean;
