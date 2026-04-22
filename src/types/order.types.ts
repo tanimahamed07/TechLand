@@ -46,6 +46,39 @@ export interface OrderResponse {
   data: IOrder;
 }
 
+export interface OrdersResponse {
+  success: boolean;
+  message: string;
+  data: IOrder[];
+  meta?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface OrderTrackingResponse {
+  success: boolean;
+  message: string;
+  data: {
+    orderNumber: string;
+    orderStatus: OrderStatus;
+    paymentStatus: PaymentStatus;
+    totalAmount: number;
+    deliveryCharge?: number;
+    orderNote?: string;
+    items: Array<{
+      title: string;
+      quantity: number;
+      image: string;
+      price: number;
+    }>;
+    createdAt: string;
+    updatedAt: string;
+  };
+}
+
 export interface CheckoutSessionResponse {
   success: boolean;
   message: string;
