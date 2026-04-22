@@ -1,3 +1,4 @@
+import { getSession } from "next-auth/react";
 import type {
   Review,
   ReviewsResponse,
@@ -8,7 +9,16 @@ import type {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001";
 
-// ১. নির্দিষ্ট প্রোডাক্টের রিভিউ নিয়ে আসা
+// Helper function to get auth token
+const getAuthToken = async (): Promise<string> => {
+  const session = await getSession();
+  if (!session?.accessToken) {
+    throw new Error("Not authenticated");
+  }
+  return session.accessToken as string;
+};
+
+// ১. নির্দিষ্ট প্রোডাক্টের রিভিউ নিয়ে আসা (Public - no auth required)
 export const getProductReviews = async (
   productId: string,
   page: number = 1,
@@ -31,8 +41,8 @@ export const getProductReviews = async (
 // ২. নতুন রিভিউ যোগ করা (authentication required)
 export const addReview = async (
   reviewData: CreateReviewPayload,
-  token: string,
 ): Promise<SingleReviewResponse> => {
+  const token = await getAuthToken();
   const response = await fetch(`${API_URL}/api/v1/reviews`, {
     method: "POST",
     headers: {
@@ -51,7 +61,8 @@ export const addReview = async (
 };
 
 // ৩. নিজের সব রিভিউ নিয়ে আসা (authentication required)
-export const getMyReviews = async (token: string): Promise<ReviewsResponse> => {
+export const getMyReviews = async (): Promise<ReviewsResponse> => {
+  const token = await getAuthToken();
   const response = await fetch(`${API_URL}/api/v1/reviews/my`, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -70,8 +81,8 @@ export const getMyReviews = async (token: string): Promise<ReviewsResponse> => {
 export const updateReview = async (
   reviewId: string,
   updateData: UpdateReviewPayload,
-  token: string,
 ): Promise<SingleReviewResponse> => {
+  const token = await getAuthToken();
   const response = await fetch(`${API_URL}/api/v1/reviews/${reviewId}`, {
     method: "PATCH",
     headers: {
@@ -92,8 +103,8 @@ export const updateReview = async (
 // ৫. রিভিউ ডিলিট করা (authentication required)
 export const deleteReview = async (
   reviewId: string,
-  token: string,
 ): Promise<{ success: boolean; message: string }> => {
+  const token = await getAuthToken();
   const response = await fetch(`${API_URL}/api/v1/reviews/${reviewId}`, {
     method: "DELETE",
     headers: {

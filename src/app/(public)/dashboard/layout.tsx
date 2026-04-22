@@ -20,7 +20,7 @@ const ADMIN_URL = process.env.NEXT_PUBLIC_ADMIN_URL || "";
 const sidebarLinks = [
   { href: "/dashboard/profile", label: "Profile", icon: User },
   { href: "/dashboard/my-orders", label: "My Orders", icon: Package },
-  { href: "/dashboard/reviews", label: "My Reviews", icon: MessageSquare },
+  { href: "/dashboard/my-reviews", label: "My Reviews", icon: MessageSquare },
   { href: "/dashboard/wishlist", label: "Wishlist", icon: Heart },
 ];
 

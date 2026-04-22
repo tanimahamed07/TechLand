@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
 import { ChevronRight, Lock, MapPin, ShoppingBag, Truck } from "lucide-react";
+import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { getCart } from "@/service/cart.service";
 import { createCheckoutSession } from "@/service/payment.service";
@@ -29,7 +30,7 @@ const DELIVERY_ZONES = [
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [cart, setCart] = useState<ICart | null>(null);
   const [loading, setLoading] = useState(true);
   const [placing, setPlacing] = useState(false);
@@ -46,6 +47,9 @@ export default function CheckoutPage() {
   // Fetch cart
   useEffect(() => {
     const fetchCart = async () => {
+      // Wait for session to load
+      if (status === "loading") return;
+
       if (!session?.user) {
         router.push("/login?redirect=/checkout");
         return;
@@ -68,18 +72,18 @@ export default function CheckoutPage() {
     };
 
     fetchCart();
-  }, [session, router]);
+  }, [session, status, router]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!phone) {
-      alert("Phone number is required");
+      toast.error("Phone number is required");
       return;
     }
 
     if (!selectedZoneId) {
-      alert("Please select a delivery zone");
+      toast.error("Please select a delivery zone");
       return;
     }
 
@@ -103,11 +107,11 @@ export default function CheckoutPage() {
       }
     } catch (error: unknown) {
       console.error("Checkout failed:", error);
-      const errorMessage =
+      toast.error(
         error instanceof Error
           ? error.message
-          : "Failed to create checkout session";
-      alert(errorMessage);
+          : "Failed to create checkout session",
+      );
     } finally {
       setPlacing(false);
     }
@@ -120,7 +124,7 @@ export default function CheckoutPage() {
     }).format(price);
   };
 
-  if (loading) {
+  if (loading || status === "loading") {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <span className="loading loading-spinner loading-lg text-primary" />
