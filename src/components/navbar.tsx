@@ -27,6 +27,7 @@ export function Navbar() {
   const [loading, setLoading] = React.useState(true);
   const [cartOpen, setCartOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+  const [wishlistCount, setWishlistCount] = useState(0);
   const { data: session, status } = useSession();
 
   // Fetch categories from API
@@ -75,6 +76,29 @@ export function Navbar() {
     return () => window.removeEventListener("cartUpdated", handleCartUpdate);
   }, [session]);
 
+  // Wishlist count fetch
+  useEffect(() => {
+    const fetchWishlistCount = async () => {
+      if (!session?.user) {
+        setWishlistCount(0);
+        return;
+      }
+      try {
+        const { getMyWishlist } = await import("@/service/wishlist.service");
+        const result = await getMyWishlist();
+        setWishlistCount(result.data?.length || 0);
+      } catch {
+        // silent fail
+      }
+    };
+
+    fetchWishlistCount();
+
+    window.addEventListener("wishlistUpdated", fetchWishlistCount);
+    return () =>
+      window.removeEventListener("wishlistUpdated", fetchWishlistCount);
+  }, [session]);
+
   const initials = useMemo(() => {
     const name = session?.user?.name ?? session?.user?.email ?? "User";
     return name
@@ -111,11 +135,15 @@ export function Navbar() {
 
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Button variant="ghost" size="icon" className="relative">
-              <Heart className="h-5 w-5" />
-              <Badge className="absolute -right-1 -top-1 h-5 w-5 rounded-full bg-red-500 p-0 text-xs text-white">
-                2
-              </Badge>
+            <Button variant="ghost" size="icon" className="relative" asChild>
+              <Link href="/dashboard/wishlist">
+                <Heart className="h-5 w-5" />
+                {wishlistCount > 0 && (
+                  <Badge className="absolute -right-1 -top-1 h-5 w-5 rounded-full bg-red-500 p-0 text-xs text-white">
+                    {wishlistCount}
+                  </Badge>
+                )}
+              </Link>
             </Button>
             <Button
               variant="ghost"
@@ -156,8 +184,11 @@ export function Navbar() {
                   <DropdownMenuItem asChild className="cursor-pointer">
                     <Link href="/dashboard/profile">Profile</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer">
-                    Orders
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link href="/dashboard/my-orders">My Orders</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link href="/dashboard/wishlist">Wishlist</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onSelect={() => signOut()}

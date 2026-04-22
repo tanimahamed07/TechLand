@@ -14,7 +14,7 @@ import { Product } from "@/types/product.types";
 import ProductLoadingSkeleton from "@/components/products/ProductLoadingSclaton";
 import Sidebar from "@/components/products/Sidebar";
 
-// Sort options type - শুধু এই page এ ব্যবহার হয়
+
 type SortOption = "newest" | "price-low" | "price-high";
 
 export interface CategoryTree {
