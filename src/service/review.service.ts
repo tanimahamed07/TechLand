@@ -120,5 +120,25 @@ export const deleteReview = async (
   return response.json();
 };
 
+// Admin: সব reviews দেখা
+export const adminGetAllReviews = async (params?: {
+  page?: number;
+  limit?: number;
+  rating?: number;
+}): Promise<ReviewsResponse> => {
+  const token = await getAuthToken();
+  const query = new URLSearchParams();
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.limit) query.set("limit", String(params.limit));
+  if (params?.rating) query.set("rating", String(params.rating));
+
+  const response = await fetch(`${API_URL}/api/v1/reviews?${query}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Failed to fetch reviews");
+  return response.json();
+};
+
 // Re-export types for convenience
 export type { Review, ReviewsResponse, CreateReviewPayload };

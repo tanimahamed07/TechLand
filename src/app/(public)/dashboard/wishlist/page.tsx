@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Heart, RefreshCw } from "lucide-react";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { getMyWishlist } from "@/service/wishlist.service";
 import { ProductCard } from "@/components/products/ProductCard";

@@ -4,7 +4,8 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Plus, Pencil, Trash2, Search, RefreshCw } from "lucide-react";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
+import { confirmToast } from "@/utils/confirmToast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -68,7 +69,10 @@ export default function AdminProductsPage() {
   };
 
   const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
+    const confirmed = await confirmToast(
+      `Delete "${title}"? This cannot be undone.`,
+    );
+    if (!confirmed) return;
     try {
       setDeleting(id);
       await adminDeleteProduct(id);

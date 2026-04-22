@@ -1,3 +1,4 @@
+import { getSession } from "next-auth/react";
 import type {
   CategoryTreeResponse,
   CategoriesResponse,
@@ -7,6 +8,12 @@ import type {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001";
 const BASE_URL = `${API_URL}/api/v1/categories`;
+
+const getAuthToken = async (): Promise<string> => {
+  const session = await getSession();
+  if (!session?.accessToken) throw new Error("Not authenticated");
+  return session.accessToken as string;
+};
 
 // ১. সকল ক্যাটাগরি ট্রি আকারে নিয়ে আসা (Main categories with children)
 export const getCategoryTree = async (): Promise<CategoryTreeResponse> => {
@@ -70,11 +77,11 @@ export const getCategoryById = async (
   return await response.json();
 };
 
-// ৬. নতুন ক্যাটাগরি তৈরি করা (Admin Only)
-export const createCategory = async (
+// Admin: নতুন ক্যাটাগরি তৈরি করা
+export const adminCreateCategory = async (
   categoryData: Partial<Category>,
-  token: string,
 ): Promise<SingleCategoryResponse> => {
+  const token = await getAuthToken();
   const response = await fetch(BASE_URL, {
     method: "POST",
     headers: {
@@ -83,16 +90,18 @@ export const createCategory = async (
     },
     body: JSON.stringify(categoryData),
   });
-  if (!response.ok) throw new Error("Failed to create category");
-  return await response.json();
+  const result: SingleCategoryResponse = await response.json();
+  if (!response.ok)
+    throw new Error(result.message || "Failed to create category");
+  return result;
 };
 
-// ৭. ক্যাটাগরি আপডেট করা (Admin Only)
-export const updateCategory = async (
+// Admin: ক্যাটাগরি আপডেট করা
+export const adminUpdateCategory = async (
   id: string,
   updateData: Partial<Category>,
-  token: string,
 ): Promise<SingleCategoryResponse> => {
+  const token = await getAuthToken();
   const response = await fetch(`${BASE_URL}/${id}`, {
     method: "PATCH",
     headers: {
@@ -101,18 +110,21 @@ export const updateCategory = async (
     },
     body: JSON.stringify(updateData),
   });
-  if (!response.ok) throw new Error("Failed to update category");
-  return await response.json();
+  const result: SingleCategoryResponse = await response.json();
+  if (!response.ok)
+    throw new Error(result.message || "Failed to update category");
+  return result;
 };
 
-// ৮. ক্যাটাগরি ডিলিট করা (Admin Only)
-export const deleteCategory = async (id: string, token: string) => {
+// Admin: ক্যাটাগরি ডিলিট করা
+export const adminDeleteCategory = async (id: string): Promise<void> => {
+  const token = await getAuthToken();
   const response = await fetch(`${BASE_URL}/${id}`, {
     method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
   });
-  if (!response.ok) throw new Error("Failed to delete category");
-  return await response.json();
+  if (!response.ok) {
+    const result = await response.json();
+    throw new Error(result.message || "Failed to delete category");
+  }
 };

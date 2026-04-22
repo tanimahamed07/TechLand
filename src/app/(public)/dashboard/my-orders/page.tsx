@@ -11,7 +11,8 @@ import {
   X,
   Loader2,
 } from "lucide-react";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
+import { confirmToast } from "@/utils/confirmToast";
 import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +43,8 @@ function OrderCard({
   const [cancelling, setCancelling] = useState(false);
 
   const handleCancel = async () => {
+    const confirmed = await confirmToast("Cancel this order?");
+    if (!confirmed) return;
     try {
       setCancelling(true);
       await cancelOrder(order._id);

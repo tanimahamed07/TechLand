@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { X } from "lucide-react";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { getAllOrders, updateOrderStatus } from "@/service/order.service";
 import { IOrder, OrderStatus, PaymentStatus } from "@/types/order.types";

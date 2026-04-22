@@ -9,7 +9,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import type { Product } from "@/types/product.types";
 import { addToCart } from "@/service/cart.service";
 import { toggleWishlist } from "@/service/wishlist.service";

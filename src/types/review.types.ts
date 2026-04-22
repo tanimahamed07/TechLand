@@ -1,12 +1,20 @@
 // Review Interface
 export interface Review {
   _id: string;
-  productId: string;
-  userId: {
-    _id: string;
-    name: string;
-    avatar?: string;
-  };
+  productId:
+    | string
+    | {
+        _id: string;
+        title: string;
+        images: string[];
+      };
+  userId:
+    | string
+    | {
+        _id: string;
+        name: string;
+        avatar?: string;
+      };
   rating: number;
   comment: string;
   createdAt: string;

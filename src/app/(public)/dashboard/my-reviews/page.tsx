@@ -13,7 +13,8 @@ import {
   Loader2,
   RefreshCw,
 } from "lucide-react";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
+import { confirmToast } from "@/utils/confirmToast";
 
 // Shadcn UI Components
 import { CardContent } from "@/components/ui/card";
@@ -183,7 +184,10 @@ export default function MyReviewsPage() {
   }, [session]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure? This cannot be undone.")) return;
+    const confirmed = await confirmToast(
+      "Delete this review? This cannot be undone.",
+    );
+    if (!confirmed) return;
     try {
       await deleteReview(id);
       toast.success("Review deleted");

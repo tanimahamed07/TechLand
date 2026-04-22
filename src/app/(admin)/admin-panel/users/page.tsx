@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { UserPlus } from "lucide-react";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
+import { confirmToast } from "@/utils/confirmToast";
 import { Button } from "@/components/ui/button";
 import {
   adminGetAllUsers,
@@ -107,7 +108,10 @@ export default function AdminUsersPage() {
 
   const handleDelete = async (user: UserProfile) => {
     if (!isSuperAdmin) return;
-    if (!confirm(`Delete "${user.name}"? This cannot be undone.`)) return;
+    const confirmed = await confirmToast(
+      `Delete "${user.name}"? This cannot be undone.`,
+    );
+    if (!confirmed) return;
     try {
       setDeleting(user._id);
       await adminDeleteUser(user._id);

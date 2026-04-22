@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import ProductForm, {
   ProductFormValues,
 } from "@/components/admin-panel/products/ProductForm";

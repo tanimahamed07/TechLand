@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
 import { ChevronRight, Lock, MapPin, ShoppingBag, Truck } from "lucide-react";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { getCart } from "@/service/cart.service";
 import { createCheckoutSession } from "@/service/payment.service";
