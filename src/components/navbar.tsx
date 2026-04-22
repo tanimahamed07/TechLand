@@ -210,7 +210,7 @@ export function Navbar() {
                       className="cursor-pointer text-primary"
                     >
                       <Link
-                        href="admin-panel"
+                        href="/admin-panel"
                         className="flex items-center gap-2"
                       >
                         Admin Panel

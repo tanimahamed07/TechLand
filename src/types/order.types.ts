@@ -23,7 +23,9 @@ export interface IOrderItem {
 
 export interface IOrder {
   _id: string;
-  userId: string;
+  userId:
+    | string
+    | { _id: string; name: string; email: string; avatar?: string };
   orderNumber: string;
   items: IOrderItem[];
   totalAmount: number;

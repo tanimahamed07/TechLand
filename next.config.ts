@@ -1,28 +1,17 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  reactStrictMode: true,
-  logging: {
-    fetches: {
-      fullUrl: true,
-    },
-  },
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: "https",
-        hostname: "placehold.co",
+        protocol: 'https',
+        hostname: '**', // Eta dile prithibir shob https site allow hobe
       },
       {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-      },
-      {
-        protocol: "https",
-        hostname: "github.com",
+        protocol: 'http',
+        hostname: '**', // Eta dile shob http site allow hobe
       },
     ],
   },
-};
+}
 
-export default nextConfig;
+module.exports = nextConfig
