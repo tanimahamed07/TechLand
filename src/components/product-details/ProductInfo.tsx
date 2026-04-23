@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,7 +22,7 @@ interface ProductInfoProps {
 }
 
 export function ProductInfo({ product }: ProductInfoProps) {
-  const [quantity, setQuantity] = React.useState(1);
+  const [quantity, setQuantity] =  useState(1);
 
   const handleQuantityChange = (type: "increase" | "decrease") => {
     if (type === "increase" && quantity < product.stock) {

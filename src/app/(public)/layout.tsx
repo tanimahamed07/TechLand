@@ -5,6 +5,7 @@ import { Navbar } from "@/components/Navbar";
 import React, { useState } from "react";
 import { MessageCircle } from "lucide-react"; // চ্যাট আইকনের জন্য
 import { Button } from "@/components/ui/button";
+import Footer from "@/components/Footer";
 
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
@@ -30,6 +31,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           </Button>
         )}
       </div>
+      <footer>
+        <Footer></Footer>
+      </footer>
     </div>
   );
 };

@@ -47,7 +47,7 @@ import {
 export function Navbar() {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [categories, setCategories] = useState<CategoryTree[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const [loading, setLoading] = useState(true);
   const [cartOpen, setCartOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [wishlistCount, setWishlistCount] = useState(0);

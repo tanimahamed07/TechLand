@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 
@@ -17,7 +17,7 @@ export function ProductImageGallery({
   discount,
   isFeatured,
 }: ProductImageGalleryProps) {
-  const [selectedImage, setSelectedImage] = React.useState(0);
+  const [selectedImage, setSelectedImage] = useState(0);
 
   return (
     <div className="space-y-4">

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -15,7 +15,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/utils/cn";
 
-const ADMIN_URL = process.env.NEXT_PUBLIC_ADMIN_URL || "";
 
 const sidebarLinks = [
   { href: "/dashboard/profile", label: "Profile", icon: User },
@@ -35,7 +34,7 @@ export default function DashboardLayout({
 
   const user = session?.user;
 
-  const initials = React.useMemo(() => {
+  const initials = useMemo(() => {
     const name = user?.name ?? user?.email ?? "U";
     return name
       .split(" ")

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,15 +17,15 @@ interface ProductTabsProps {
 
 export function ProductTabs({ product, productId }: ProductTabsProps) {
   const { data: session } = useSession();
-  const [activeTab, setActiveTab] = React.useState<
+  const [activeTab, setActiveTab] = useState<
     "description" | "specifications" | "reviews"
   >("description");
-  const [reviews, setReviews] = React.useState<Review[]>([]);
-  const [reviewsTotal, setReviewsTotal] = React.useState(0);
-  const [reviewsLoading, setReviewsLoading] = React.useState(false);
-  const [reviewRating, setReviewRating] = React.useState(0);
-  const [reviewComment, setReviewComment] = React.useState("");
-  const [submittingReview, setSubmittingReview] = React.useState(false);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviewsTotal, setReviewsTotal] = useState(0);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   // Reviews fetch করা
   useEffect(() => {

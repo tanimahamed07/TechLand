@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -16,12 +16,12 @@ export default function ProductDetailsPage() {
   const params = useParams();
   const productId = params.id as string;
 
-  const [product, setProduct] = React.useState<Product | null>(null);
-  const [relatedProducts, setRelatedProducts] = React.useState<Product[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Product fetch করা
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
