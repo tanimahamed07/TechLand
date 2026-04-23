@@ -3,6 +3,7 @@ import CategorySection from "@/components/home/CategorySection";
 import FeaturedProducts from "@/components/home/FeaturedProducts";
 import StatSection from "@/components/home/StatSection";
 import WhyTechLand from "@/components/home/WhyTechLand";
+import TestimonialSection from "@/components/home/TestimonialSection";
 
 export default function Home() {
   return (
@@ -15,6 +16,7 @@ export default function Home() {
         <FeaturedProducts></FeaturedProducts>
         <StatSection/>
         <WhyTechLand/>
+        <TestimonialSection/>
       </main>
     </div>
   );
