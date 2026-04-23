@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Search,
   Heart,
@@ -11,7 +12,6 @@ import {
   User,
   LogOut,
   Package,
-  Star,
   Shield,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
@@ -36,7 +36,6 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
 } from "@/components/ui/sheet";
 import {
   Collapsible,
@@ -45,6 +44,7 @@ import {
 } from "@/components/ui/collapsible";
 
 export function Navbar() {
+  const router = useRouter();
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [categories, setCategories] = useState<CategoryTree[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,6 +53,7 @@ export function Navbar() {
   const [wishlistCount, setWishlistCount] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [expandedCat, setExpandedCat] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const { data: session, status } = useSession();
 
   // Fetch categories
@@ -124,6 +125,21 @@ export function Navbar() {
       .toUpperCase();
   }, [session]);
 
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && searchQuery.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery("");
+    }
+  };
+
+  const handleSearchMobile = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && searchQuery.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery("");
+      setMobileOpen(false);
+    }
+  };
+
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
@@ -146,6 +162,9 @@ export function Navbar() {
                 type="search"
                 placeholder="Search products, brands..."
                 className="w-full pl-10"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={handleSearch}
               />
             </div>
           </div>
@@ -392,7 +411,13 @@ export function Navbar() {
           <div className="p-4 border-b shrink-0">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Search..." className="pl-10 h-9" />
+              <Input
+                placeholder="Search..."
+                className="pl-10 h-9"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={handleSearchMobile}
+              />
             </div>
           </div>
 

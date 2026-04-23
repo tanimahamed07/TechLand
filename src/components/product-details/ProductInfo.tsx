@@ -16,13 +16,23 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { Product } from "@/types/product.types";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
+import { addToCart } from "@/service/cart.service";
+import { toggleWishlist } from "@/service/wishlist.service";
 
 interface ProductInfoProps {
   product: Product;
 }
 
 export function ProductInfo({ product }: ProductInfoProps) {
-  const [quantity, setQuantity] =  useState(1);
+  const { data: session } = useSession();
+  const router = useRouter();
+  const [quantity, setQuantity] = useState(1);
+  const [adding, setAdding] = useState(false);
+  const [wishlisted, setWishlisted] = useState(false);
+  const [togglingWishlist, setTogglingWishlist] = useState(false);
 
   const handleQuantityChange = (type: "increase" | "decrease") => {
     if (type === "increase" && quantity < product.stock) {
@@ -127,13 +137,55 @@ export function ProductInfo({ product }: ProductInfoProps) {
         <Button
           size="lg"
           className="flex-1 gap-2"
-          disabled={product.stock === 0}
+          disabled={product.stock === 0 || adding}
+          onClick={async () => {
+            if (!session?.user) {
+              router.push(`/login?redirect=/products/${product._id}`);
+              return;
+            }
+            try {
+              setAdding(true);
+              await addToCart(product._id, quantity);
+              window.dispatchEvent(new Event("cartUpdated"));
+              toast.success("Added to cart");
+            } catch {
+              toast.error("Failed to add to cart");
+            } finally {
+              setAdding(false);
+            }
+          }}
         >
           <ShoppingCart className="h-5 w-5" />
-          Add to Cart
+          {adding ? "Adding..." : "Add to Cart"}
         </Button>
-        <Button variant="outline" size="lg">
-          <Heart className="h-5 w-5" />
+        <Button
+          variant="outline"
+          size="lg"
+          disabled={togglingWishlist}
+          onClick={async () => {
+            if (!session?.user) {
+              router.push(`/login?redirect=/products/${product._id}`);
+              return;
+            }
+            try {
+              setTogglingWishlist(true);
+              const result = await toggleWishlist(product._id);
+              const added = result.message.toLowerCase().includes("added");
+              setWishlisted(added);
+              window.dispatchEvent(new Event("wishlistUpdated"));
+              toast.success(
+                added ? "Added to wishlist" : "Removed from wishlist",
+              );
+            } catch {
+              toast.error("Failed to update wishlist");
+            } finally {
+              setTogglingWishlist(false);
+            }
+          }}
+        >
+          <Heart
+            className={`h-5 w-5 ${wishlisted ? "fill-rose-500 text-rose-500" : ""}`}
+          />
         </Button>
         <Button variant="outline" size="lg">
           <Share2 className="h-5 w-5" />
