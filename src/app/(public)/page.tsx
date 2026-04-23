@@ -2,6 +2,7 @@ import HeroSection from "@/components/banner/HeroSection";
 import CategorySection from "@/components/home/CategorySection";
 import FeaturedProducts from "@/components/home/FeaturedProducts";
 import StatSection from "@/components/home/StatSection";
+import WhyTechLand from "@/components/home/WhyTechLand";
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
         <CategorySection></CategorySection>
         <FeaturedProducts></FeaturedProducts>
         <StatSection/>
+        <WhyTechLand/>
       </main>
     </div>
   );

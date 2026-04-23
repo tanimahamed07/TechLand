@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Users, ShoppingBag, Globe, Zap, Award } from "lucide-react";
+import { Users, ShoppingBag, Globe, Zap } from "lucide-react";
 import { motion, animate } from "framer-motion";
 
 // --- কাউন্টার কম্পোনেন্ট ---
