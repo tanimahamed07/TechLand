@@ -66,6 +66,135 @@ const navLinks = [
   },
 ];
 
+const SidebarContent = ({
+  pathname,
+  user,
+  initials,
+  openMenus,
+  toggleMenu,
+  setIsMobileOpen,
+}: any) => (
+  <div className="flex h-full flex-col bg-card">
+    <div className="flex h-16 items-center gap-2 border-b px-6">
+      <Link
+        href="/"
+        className="flex items-center gap-2 transition-opacity hover:opacity-80"
+      >
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20">
+          <span className="text-lg font-bold text-primary-foreground">T</span>
+        </div>
+        <span className="text-lg font-bold tracking-tight text-foreground">
+          TechLand
+        </span>
+      </Link>
+      <Badge
+        variant="secondary"
+        className="ml-auto text-[10px] font-bold uppercase tracking-wider"
+      >
+        Admin
+      </Badge>
+    </div>
+
+    <nav className="flex-1 space-y-1 overflow-y-auto p-4 scrollbar-hide">
+      {navLinks.map(({ href, label, icon: Icon, exact, children }) => {
+        const isActive = exact ? pathname === href : pathname.startsWith(href);
+        const isOpen = openMenus.includes(href);
+
+        return (
+          <div key={href} className="mb-1">
+            {children ? (
+              <>
+                <button
+                  onClick={() => toggleMenu(href)}
+                  className={cn(
+                    "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
+                    isActive
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                >
+                  <Icon className="h-5 w-5 shrink-0" />
+                  <span className="flex-1 text-left">{label}</span>
+                  {isOpen ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
+                  )}
+                </button>
+                {isOpen && (
+                  <div className="ml-4 mt-1 space-y-1 border-l-2 border-primary/20 pl-3">
+                    {children.map((child) => (
+                      <Link
+                        key={child.href}
+                        href={child.href}
+                        onClick={() => setIsMobileOpen(false)}
+                        className={cn(
+                          "block rounded-md px-3 py-2 text-xs font-medium transition-colors",
+                          pathname === child.href
+                            ? "bg-primary/10 text-primary"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                        )}
+                      >
+                        {child.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <Link
+                href={href}
+                onClick={() => setIsMobileOpen(false)}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
+                  isActive
+                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+              >
+                <Icon className="h-5 w-5 shrink-0" />
+                <span className="flex-1">{label}</span>
+                {isActive && (
+                  <ChevronRight className="ml-auto h-3 w-3 opacity-50" />
+                )}
+              </Link>
+            )}
+          </div>
+        );
+      })}
+    </nav>
+
+    <div className="border-t bg-muted/20 p-4">
+      <div className="mb-4 flex items-center gap-3 rounded-xl bg-background border border-border/50 p-2 shadow-sm">
+        <Avatar className="h-9 w-9 border border-border">
+          <AvatarImage src={user?.image ?? ""} alt={user?.name ?? "Admin"} />
+          <AvatarFallback className="bg-primary/10 text-xs font-bold text-primary">
+            {initials}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1 overflow-hidden">
+          <p className="truncate text-xs font-bold text-foreground">
+            {user?.name}
+          </p>
+          <p className="truncate text-[10px] font-medium text-muted-foreground capitalize">
+            {user?.role}
+          </p>
+        </div>
+        <ThemeToggle />
+      </div>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="w-full justify-start gap-2 rounded-lg text-destructive hover:bg-destructive/10"
+        onClick={() => signOut({ callbackUrl: "/" })}
+      >
+        <LogOut className="h-4 w-4" />
+        <span className="text-xs font-bold">Sign Out</span>
+      </Button>
+    </div>
+  </div>
+);
+
 export default function AdminLayout({
   children,
 }: {
@@ -129,136 +258,21 @@ export default function AdminLayout({
   if (!user || (user.role !== "admin" && user.role !== "super-admin"))
     return null;
 
-  // Sidebar reusable component
-  const SidebarContent = () => (
-    <div className="flex h-full flex-col bg-card">
-      <div className="flex h-16 items-center gap-2 border-b px-6">
-        <Link
-          href="/"
-          className="flex items-center gap-2 transition-opacity hover:opacity-80"
-        >
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20">
-            <span className="text-lg font-bold text-primary-foreground">T</span>
-          </div>
-          <span className="text-lg font-bold tracking-tight text-foreground">
-            TechLand
-          </span>
-        </Link>
-        <Badge
-          variant="secondary"
-          className="ml-auto text-[10px] font-bold uppercase tracking-wider"
-        >
-          Admin
-        </Badge>
-      </div>
-
-      <nav className="flex-1 space-y-1 overflow-y-auto p-4 scrollbar-hide">
-        {navLinks.map(({ href, label, icon: Icon, exact, children }) => {
-          const isActive = exact
-            ? pathname === href
-            : pathname.startsWith(href);
-          const isOpen = openMenus.includes(href);
-
-          return (
-            <div key={href} className="mb-1">
-              {children ? (
-                <>
-                  <button
-                    onClick={() => toggleMenu(href)}
-                    className={cn(
-                      "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
-                      isActive
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                    )}
-                  >
-                    <Icon className="h-5 w-5 shrink-0" />
-                    <span className="flex-1 text-left">{label}</span>
-                    {isOpen ? (
-                      <ChevronDown className="h-4 w-4" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4" />
-                    )}
-                  </button>
-                  {isOpen && (
-                    <div className="ml-4 mt-1 space-y-1 border-l-2 border-primary/20 pl-3">
-                      {children.map((child) => (
-                        <Link
-                          key={child.href}
-                          href={child.href}
-                          onClick={() => setIsMobileOpen(false)}
-                          className={cn(
-                            "block rounded-md px-3 py-2 text-xs font-medium transition-colors",
-                            pathname === child.href
-                              ? "bg-primary/10 text-primary"
-                              : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
-                          )}
-                        >
-                          {child.label}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <Link
-                  href={href}
-                  onClick={() => setIsMobileOpen(false)}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
-                    isActive
-                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                  )}
-                >
-                  <Icon className="h-5 w-5 shrink-0" />
-                  <span className="flex-1">{label}</span>
-                  {isActive && (
-                    <ChevronRight className="ml-auto h-3 w-3 opacity-50" />
-                  )}
-                </Link>
-              )}
-            </div>
-          );
-        })}
-      </nav>
-
-      <div className="border-t bg-muted/20 p-4">
-        <div className="mb-4 flex items-center gap-3 rounded-xl bg-background border border-border/50 p-2 shadow-sm">
-          <Avatar className="h-9 w-9 border border-border">
-            <AvatarImage src={user.image ?? ""} alt={user.name ?? "Admin"} />
-            <AvatarFallback className="bg-primary/10 text-xs font-bold text-primary">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 overflow-hidden">
-            <p className="truncate text-xs font-bold text-foreground">
-              {user.name}
-            </p>
-            <p className="truncate text-[10px] font-medium text-muted-foreground capitalize">
-              {user.role}
-            </p>
-          </div>
-          <ThemeToggle />
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full justify-start gap-2 rounded-lg text-destructive hover:bg-destructive/10"
-          onClick={() => signOut({ callbackUrl: "/" })}
-        >
-          <LogOut className="h-4 w-4" />
-          <span className="text-xs font-bold">Sign Out</span>
-        </Button>
-      </div>
-    </div>
-  );
+  // Props to be passed to SidebarContent
+  const sidebarProps = {
+    pathname,
+    user,
+    initials,
+    openMenus,
+    toggleMenu,
+    setIsMobileOpen,
+  };
 
   return (
     <div className="flex min-h-screen bg-background/50">
       {/* Desktop Sidebar */}
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 border-r bg-card lg:flex">
-        <SidebarContent />
+        <SidebarContent {...sidebarProps} />
       </aside>
 
       <div className="flex flex-1 flex-col min-w-0">
@@ -276,7 +290,6 @@ export default function AdminLayout({
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0 w-72 border-r-0">
-                {/* --- FIX: Added SR Header to resolve Accessibility Error --- */}
                 <div className="sr-only">
                   <SheetHeader>
                     <SheetTitle>Admin Navigation</SheetTitle>
@@ -285,9 +298,7 @@ export default function AdminLayout({
                     </SheetDescription>
                   </SheetHeader>
                 </div>
-                {/* ---------------------------------------------------------- */}
-
-                <SidebarContent />
+                <SidebarContent {...sidebarProps} />
               </SheetContent>
             </Sheet>
 

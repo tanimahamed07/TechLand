@@ -1,5 +1,5 @@
 import HeroSection from "@/components/banner/HeroSection";
-
+import CategorySection from "@/components/home/CategorySection";
 
 export default function Home() {
   return (
@@ -8,6 +8,7 @@ export default function Home() {
         {" "}
         {/* mx-auto add kora hoyeche */}
         <HeroSection />
+        <CategorySection></CategorySection>
       </main>
     </div>
   );
