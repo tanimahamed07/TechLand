@@ -4,6 +4,8 @@ import FeaturedProducts from "@/components/home/FeaturedProducts";
 import StatSection from "@/components/home/StatSection";
 import WhyTechLand from "@/components/home/WhyTechLand";
 import TestimonialSection from "@/components/home/TestimonialSection";
+import NewsletterSection from "@/components/home/NewsletterSection";
+import FAQSection from "@/components/home/FAQSection";
 
 export default function Home() {
   return (
@@ -17,6 +19,8 @@ export default function Home() {
         <StatSection/>
         <WhyTechLand/>
         <TestimonialSection/>
+        <NewsletterSection/>
+        <FAQSection/>
       </main>
     </div>
   );

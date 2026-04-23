@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Users, ShoppingBag, Globe, Zap } from "lucide-react";
+import { Users, ShoppingBag, Globe, Zap, BarChart3 } from "lucide-react"; // BarChart3 আইকনটি হেডারের জন্য যোগ করা হয়েছে
 import { motion, animate } from "framer-motion";
 
 // --- কাউন্টার কম্পোনেন্ট ---
@@ -33,54 +33,51 @@ const stats = [
     label: "Happy Customers",
     value: "50k+",
     Icon: Users,
-    iconBg: "bg-blue-500/10",
-    iconColor: "text-blue-600",
-    hoverBorder: "hover:border-blue-300",
+    iconBg: "bg-primary/10",
+    iconColor: "text-primary",
   },
   {
     id: 2,
     label: "Total Products",
     value: "1200+",
     Icon: ShoppingBag,
-    iconBg: "bg-emerald-500/10",
-    iconColor: "text-emerald-600",
-    hoverBorder: "hover:border-emerald-300",
+    iconBg: "bg-primary/10",
+    iconColor: "text-primary",
   },
   {
     id: 3,
     label: "Cities Covered",
     value: "64",
     Icon: Globe,
-    iconBg: "bg-orange-500/10",
-    iconColor: "text-orange-600",
-    hoverBorder: "hover:border-orange-300",
+    iconBg: "bg-primary/10",
+    iconColor: "text-primary",
   },
   {
     id: 4,
     label: "Fast Delivery",
     value: "24h",
     Icon: Zap,
-    iconBg: "bg-amber-500/10",
-    iconColor: "text-amber-600",
-    hoverBorder: "hover:border-amber-300",
+    iconBg: "bg-primary/10",
+    iconColor: "text-primary",
   },
 ];
 
 export default function StatSection() {
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-background transition-colors duration-300">
       <div className="container mx-auto px-6 lg:px-8">
-        {/* Header - Category Section এর সাথে হুবহু মিল রাখা হয়েছে */}
-        <div className="text-center mb-16">
-          <div className="badge badge-primary badge-lg mb-4 px-4 py-3 font-semibold">
+        {/* Header - WhyTechLand এর হেডারের সাথে হুবহু মিল রাখা হয়েছে */}
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4">
+            <BarChart3 className="w-3.5 h-3.5" />
             Our Milestones
           </div>
-          <h2 className="text-3xl lg:text-4xl font-black text-slate-900 mb-3">
+          <h2 className="text-3xl lg:text-4xl font-black text-foreground mb-3">
             Trusted by <span className="text-primary">Thousands</span>
           </h2>
-          <p className="text-slate-500 max-w-xl mx-auto text-sm">
+          <p className="text-muted-foreground max-w-xl mx-auto text-sm">
             We take pride in our growth and the community we've built. TechLand
-            continues to set new benchmarks.
+            continues to set new benchmarks in the industry.
           </p>
         </div>
 
@@ -98,13 +95,13 @@ export default function StatSection() {
               <div
                 className={`
                   relative flex flex-col items-center gap-4 p-8 rounded-2xl
-                  bg-white border border-slate-100 ${item.hoverBorder}
+                  bg-card border border-border hover:border-primary/50
                   transition-all duration-300
-                  hover:-translate-y-2 hover:shadow-lg
+                  hover:-translate-y-2 hover:shadow-xl hover:shadow-primary/5
                   text-center
                 `}
               >
-                {/* Icon Container - Category Section এর স্টাইল */}
+                {/* Icon Container */}
                 <div
                   className={`w-14 h-14 rounded-2xl ${item.iconBg} flex items-center justify-center transition-transform duration-300 group-hover:scale-110`}
                 >
@@ -113,15 +110,15 @@ export default function StatSection() {
 
                 {/* Counter Content */}
                 <div>
-                  <h3 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900">
+                  <h3 className="text-3xl md:text-4xl font-black tracking-tight text-foreground">
                     <Counter value={item.value} />
                   </h3>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1 group-hover:text-primary transition-colors">
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1 group-hover:text-primary transition-colors">
                     {item.label}
                   </p>
                 </div>
 
-                {/* Arrow Accent - Category Section এর ডেকোরেশনের সাথে মিল রাখতে */}
+                {/* Arrow Accent */}
                 <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                   <div
                     className={`w-5 h-5 rounded-full ${item.iconBg} flex items-center justify-center`}
