@@ -66,7 +66,7 @@ const Testimonials = () => {
   return (
     <section className="py-16 bg-background relative overflow-hidden transition-colors duration-300">
       <div className="container mx-auto px-6 lg:px-8">
-        {/* Header - WhyTechLand এর হেডারের সাথে হুবহু মিল রাখা হয়েছে */}
+        {/* Header */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4">
             <MessageSquareQuote className="w-3.5 h-3.5" />
@@ -86,11 +86,20 @@ const Testimonials = () => {
           pagination={{ clickable: true }}
           autoplay={{ delay: 5000 }}
           loop={true}
-          spaceBetween={20}
+          spaceBetween={24} // কার্ডগুলোর গ্যাপ কিছুটা বাড়ানো হয়েছে
           breakpoints={{
-            0: { slidesPerView: 1 },
-            768: { slidesPerView: 2 },
-            1024: { slidesPerView: 3.2 },
+            0: {
+              slidesPerView: 1,
+              spaceBetween: 16,
+            },
+            768: {
+              slidesPerView: 2,
+              spaceBetween: 20,
+            },
+            1024: {
+              slidesPerView: 3, // ৩.২ থেকে কমিয়ে ৩ করা হয়েছে যাতে আংশিক দেখা না যায়
+              spaceBetween: 24,
+            },
           }}
           className="!pb-14 !flex !items-stretch"
         >

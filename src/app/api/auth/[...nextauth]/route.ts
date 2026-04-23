@@ -1,10 +1,22 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001";
 
 export const authOptions: NextAuthOptions = {
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+      authorization: {
+        params: {
+          prompt: "select_account",
+          access_type: "offline",
+          scope: "openid email profile",
+        },
+      },
+    }),
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -52,7 +64,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user, trigger, session }) {
+    async jwt({ token, user, trigger, session, account }) {
       // Initial login
       if (user) {
         token.id = user.id;
@@ -60,6 +72,11 @@ export const authOptions: NextAuthOptions = {
         token.accessToken = user.accessToken;
         token.name = user.name;
         token.picture = user.image;
+      }
+      // Google login er jonno - account theke access token nao
+      if (account?.provider === "google") {
+        token.accessToken = account.access_token ?? "";
+        token.role = "user"; // Google login e default role "user"
       }
       // Session update() call theke
       if (trigger === "update" && session?.user) {
