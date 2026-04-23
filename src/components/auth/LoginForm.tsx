@@ -13,14 +13,19 @@ import {
   Lock,
   LogIn,
   Eye,
+  EyeOff,
   Smartphone,
   Monitor,
   Loader2,
+  User,
+  ShieldCheck,
+  Zap,
 } from "lucide-react";
 
 const LoginForm = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // পাসওয়ার্ড দেখার জন্য
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     email: "",
@@ -30,6 +35,14 @@ const LoginForm = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
+  };
+
+  // ডেমো লগইন ফাংশন
+  const handleDemoLogin = (roleEmail: string) => {
+    setFormData({
+      email: roleEmail,
+      password: "password123",
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,10 +73,9 @@ const LoginForm = () => {
     <div className="flex min-h-screen items-center justify-center bg-[#f4f7fe] px-4 py-10 transition-colors duration-300">
       <div className="w-full max-w-[1100px] overflow-hidden rounded-3xl bg-card shadow-2xl transition-all duration-300">
         <div className="flex flex-col md:flex-row">
-          {/* Left Side: আইকন এবং ব্র্যান্ডিং (ইমেজ এরর ফিক্সড) */}
+          {/* Left Side */}
           <div className="relative hidden flex-1 items-center justify-center p-10 md:flex md:flex-col bg-gradient-to-br from-[#e0e8f9] to-[#f4f7fe]">
             <div className="relative z-10 space-y-4 text-center">
-              {/* TechLand Logo */}
               <div className="flex items-center justify-center gap-2 mb-6">
                 <Link
                   href="/"
@@ -77,7 +89,6 @@ const LoginForm = () => {
                   TechLand
                 </span>
               </div>
-
               <h1 className="text-3xl font-extrabold text-foreground">
                 Your Gadget Destination
               </h1>
@@ -86,8 +97,6 @@ const LoginForm = () => {
                 dashboard.
               </p>
             </div>
-
-            {/* গ্যাজেট রিলেটেড আইকন গ্রাফিক্স (ইমেজের বিকল্প) */}
             <div className="relative z-10 mt-16 flex items-center justify-center gap-8 opacity-20">
               <div className="animate-bounce transition-all duration-1000">
                 <Monitor size={80} className="text-primary" />
@@ -96,11 +105,10 @@ const LoginForm = () => {
                 <Smartphone size={60} className="text-primary" />
               </div>
             </div>
-
             <div className="absolute inset-0 bg-grid-slate-200 [mask-image:linear-gradient(0deg,#fff,rgba(255,255,255,0.6))] -z-0" />
           </div>
 
-          {/* Right Side: Login Form (আগের মতোই) */}
+          {/* Right Side */}
           <div className="flex flex-1 items-center justify-center bg-card p-10 sm:p-16 border-l border-border/50">
             <div className="w-full max-w-md space-y-8">
               <div className="space-y-3 text-center md:text-left">
@@ -110,6 +118,34 @@ const LoginForm = () => {
                 <p className="text-lg text-muted-foreground font-medium">
                   Welcome back! Please enter your details.
                 </p>
+              </div>
+
+              {/* Demo Login Buttons */}
+              <div className="grid grid-cols-3 gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-[10px] h-8"
+                  onClick={() => handleDemoLogin("user@techland.com")}
+                >
+                  <User className="mr-1 h-3 w-3" /> User
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-[10px] h-8"
+                  onClick={() => handleDemoLogin("admin1@techland.com")}
+                >
+                  <ShieldCheck className="mr-1 h-3 w-3" /> Admin
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-[10px] h-8"
+                  onClick={() => handleDemoLogin("super@techland.com")}
+                >
+                  <Zap className="mr-1 h-3 w-3" /> Super
+                </Button>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -128,11 +164,6 @@ const LoginForm = () => {
                       className="h-12 border-border bg-background pl-12 rounded-xl focus-visible:ring-2 focus-visible:ring-primary/20"
                       required
                     />
-                    <div className="absolute right-3.5 top-3.5">
-                      <div className="h-5 w-5 rounded-sm bg-emerald-500/10 flex items-center justify-center">
-                        <div className="h-2 w-2 bg-emerald-500 rounded-full" />
-                      </div>
-                    </div>
                   </div>
                 </div>
 
@@ -144,7 +175,7 @@ const LoginForm = () => {
                     <Lock className="absolute left-3.5 top-3.5 h-5 w-5 text-muted-foreground" />
                     <Input
                       id="password"
-                      type="password"
+                      type={showPassword ? "text" : "password"} // টাইপ পরিবর্তন হবে
                       placeholder="••••••••"
                       value={formData.password}
                       onChange={handleInputChange}
@@ -153,9 +184,10 @@ const LoginForm = () => {
                     />
                     <button
                       type="button"
+                      onClick={() => setShowPassword(!showPassword)} // আইকন ক্লিক হ্যান্ডলার
                       className="absolute right-3.5 top-3.5 text-muted-foreground hover:text-foreground"
                     >
-                      <Eye size={18} />
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
                 </div>
@@ -164,13 +196,14 @@ const LoginForm = () => {
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="remember"
+                      required // চেকবক্স রিকোয়ার্ড করা হয়েছে
                       className="rounded-md border-border"
                     />
                     <label
                       htmlFor="remember"
                       className="text-sm font-medium text-muted-foreground cursor-pointer"
                     >
-                      Remember for 30 days
+                      Accept terms to sign in
                     </label>
                   </div>
                   <Link

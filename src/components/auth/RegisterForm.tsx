@@ -14,9 +14,9 @@ import {
   User,
   UserPlus,
   Eye,
+  EyeOff,
   Smartphone,
   Monitor,
-  ShieldCheck,
   Loader2,
 } from "lucide-react";
 import { register } from "@/service/auth.service";
@@ -25,6 +25,7 @@ import type { RegisterPayload } from "@/types/auth.types";
 const RegisterPage = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // পাসওয়ার্ড দেখার জন্য
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<RegisterPayload>({
     name: "",
@@ -45,7 +46,7 @@ const RegisterPage = () => {
     try {
       await register(formData);
 
-      // After successful registration, sign in the user
+      // সফল রেজিস্ট্রেশনের পর অটো লগইন
       const result = await signIn("credentials", {
         email: formData.email,
         password: formData.password,
@@ -53,7 +54,6 @@ const RegisterPage = () => {
       });
 
       if (result?.ok) {
-        // Redirect to home page
         router.push("/");
         router.refresh();
       } else {
@@ -75,7 +75,6 @@ const RegisterPage = () => {
           {/* Left Side: Branding & Animated Icons */}
           <div className="relative hidden flex-1 items-center justify-center p-10 md:flex md:flex-col bg-gradient-to-br from-[#e0e8f9] to-[#f4f7fe]">
             <div className="relative z-10 space-y-4 text-center">
-              {/* TechLand Logo */}
               <div className="flex items-center justify-center gap-2 mb-6">
                 <Link
                   href="/"
@@ -99,7 +98,6 @@ const RegisterPage = () => {
               </p>
             </div>
 
-            {/* Tech Icons Animation */}
             <div className="relative z-10 mt-16 flex items-center justify-center gap-8 opacity-20">
               <div className="animate-bounce transition-all duration-1000">
                 <Monitor size={80} className="text-primary" />
@@ -127,21 +125,18 @@ const RegisterPage = () => {
               <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Full Name Field */}
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="name"
-                    className="text-sm font-semibold text-foreground/80"
-                  >
+                  <Label htmlFor="name" className="text-sm font-semibold">
                     Full Name
                   </Label>
-                  <div className="relative group">
-                    <User className="absolute left-3.5 top-3.5 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                  <div className="relative">
+                    <User className="absolute left-3.5 top-3.5 h-5 w-5 text-muted-foreground" />
                     <Input
                       id="name"
                       type="text"
                       placeholder="Your Name"
                       value={formData.name}
                       onChange={handleInputChange}
-                      className="h-12 border-border bg-background pl-12 rounded-xl focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
+                      className="h-12 border-border bg-background pl-12 rounded-xl focus-visible:ring-2 focus-visible:ring-primary/20"
                       required
                     />
                   </div>
@@ -149,21 +144,18 @@ const RegisterPage = () => {
 
                 {/* Email Field */}
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="email"
-                    className="text-sm font-semibold text-foreground/80"
-                  >
+                  <Label htmlFor="email" className="text-sm font-semibold">
                     Email Address
                   </Label>
-                  <div className="relative group">
-                    <Mail className="absolute left-3.5 top-3.5 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-3.5 h-5 w-5 text-muted-foreground" />
                     <Input
                       id="email"
                       type="email"
                       placeholder="you@techland.com"
                       value={formData.email}
                       onChange={handleInputChange}
-                      className="h-12 border-border bg-background pl-12 rounded-xl focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
+                      className="h-12 border-border bg-background pl-12 rounded-xl focus-visible:ring-2 focus-visible:ring-primary/20"
                       required
                     />
                   </div>
@@ -171,49 +163,27 @@ const RegisterPage = () => {
 
                 {/* Password Field */}
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="password"
-                    className="text-sm font-semibold text-foreground/80"
-                  >
+                  <Label htmlFor="password" className="text-sm font-semibold">
                     Password
                   </Label>
-                  <div className="relative group">
-                    <Lock className="absolute left-3.5 top-3.5 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-3.5 h-5 w-5 text-muted-foreground" />
                     <Input
                       id="password"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
                       value={formData.password}
                       onChange={handleInputChange}
-                      className="h-12 border-border bg-background pl-12 rounded-xl focus-visible:ring-2 focus-visible:ring-primary/20 pr-12 transition-all"
+                      className="h-12 border-border bg-background pl-12 rounded-xl focus-visible:ring-2 focus-visible:ring-primary/20 pr-12"
                       required
                     />
                     <button
                       type="button"
-                      className="absolute right-3.5 top-3.5 text-muted-foreground hover:text-foreground"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-3.5 text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      <Eye size={18} />
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
-                  </div>
-                </div>
-
-                {/* Confirm Password Field */}
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="confirmPassword"
-                    className="text-sm font-semibold text-foreground/80"
-                  >
-                    Confirm Password
-                  </Label>
-                  <div className="relative group">
-                    <ShieldCheck className="absolute left-3.5 top-3.5 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      placeholder="••••••••"
-                      className="h-12 border-border bg-background pl-12 rounded-xl focus-visible:ring-2 focus-visible:ring-primary/20 pr-12 transition-all"
-                      required
-                    />
                   </div>
                 </div>
 
@@ -221,7 +191,7 @@ const RegisterPage = () => {
                 <div className="flex items-start space-x-2 pt-1">
                   <Checkbox
                     id="terms"
-                    className="mt-1 rounded border-border data-[state=checked]:bg-primary"
+                    className="mt-1 rounded border-border"
                     required
                   />
                   <label
@@ -229,11 +199,17 @@ const RegisterPage = () => {
                     className="text-sm font-medium text-muted-foreground leading-tight cursor-pointer select-none"
                   >
                     I agree to the{" "}
-                    <Link href="#" className="text-primary hover:underline">
-                      Terms of Service
+                    <Link
+                      href="#"
+                      className="text-primary font-bold hover:underline"
+                    >
+                      Terms
                     </Link>{" "}
                     and{" "}
-                    <Link href="#" className="text-primary hover:underline">
+                    <Link
+                      href="#"
+                      className="text-primary font-bold hover:underline"
+                    >
                       Privacy Policy
                     </Link>
                     .
@@ -242,19 +218,19 @@ const RegisterPage = () => {
 
                 {/* Register Button */}
                 <Button
-                  className="w-full py-7 text-lg font-bold bg-primary text-primary-foreground hover:opacity-90 rounded-xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                  className="w-full py-7 text-lg font-bold bg-primary text-primary-foreground hover:opacity-90 rounded-xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-all"
                   type="submit"
                   disabled={isLoading}
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <Loader2 className="h-5 w-5 animate-spin mr-2" />
                       Creating Account...
                     </>
                   ) : (
                     <>
                       Create Account
-                      <UserPlus className="h-5 w-5" />
+                      <UserPlus className="ml-2 h-5 w-5" />
                     </>
                   )}
                 </Button>
@@ -266,13 +242,12 @@ const RegisterPage = () => {
                 )}
               </form>
 
-              {/* Already have an account? */}
               <div className="text-center pt-2">
                 <p className="text-sm text-muted-foreground font-medium">
                   Already have an account?{" "}
                   <Link
                     href="/login"
-                    className="font-bold text-primary hover:underline underline-offset-4 cursor-pointer transition-colors"
+                    className="font-bold text-primary hover:underline underline-offset-4"
                   >
                     Sign in
                   </Link>

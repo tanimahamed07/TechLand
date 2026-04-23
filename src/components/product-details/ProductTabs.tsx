@@ -68,14 +68,11 @@ export function ProductTabs({ product, productId }: ProductTabsProps) {
 
     try {
       setSubmittingReview(true);
-      await addReview(
-        {
-          productId,
-          rating: reviewRating,
-          comment: reviewComment,
-        },
-        session.accessToken,
-      );
+      await addReview({
+        productId,
+        rating: reviewRating,
+        comment: reviewComment,
+      });
 
       // Reset form
       setReviewRating(0);
@@ -316,16 +313,22 @@ export function ProductTabs({ product, productId }: ProductTabsProps) {
                       <div className="flex items-start justify-between">
                         <div className="flex gap-4">
                           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-lg font-semibold text-primary">
-                            {review.userId.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")
-                              .toUpperCase()
-                              .slice(0, 2)}
+                            {typeof review.userId === "object" &&
+                            review.userId?.name
+                              ? review.userId.name
+                                  .split(" ")
+                                  .map((n) => n[0])
+                                  .join("")
+                                  .toUpperCase()
+                                  .slice(0, 2)
+                              : "U"}
                           </div>
                           <div>
                             <h4 className="font-semibold text-foreground">
-                              {review.userId.name}
+                              {typeof review.userId === "object" &&
+                              review.userId?.name
+                                ? review.userId.name
+                                : "Unknown User"}
                             </h4>
                             <div className="mt-1 flex items-center gap-2">
                               <div className="flex">

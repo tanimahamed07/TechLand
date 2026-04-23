@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/card";
 import { getDashboardOverview } from "@/service/dashboard.service";
 import type { DashboardOverview } from "@/types/dashboard.types";
+import Image from "next/image";
 
 const statusColors: Record<string, string> = {
   pending: "#f59e0b", // amber-500
@@ -146,7 +147,7 @@ export default function OverviewPage() {
       {/* Row 1: Line Chart (Revenue) & Donut Chart (Status) */}
       <div className="grid gap-5 grid-cols-1 lg:grid-cols-3">
         {/* Monthly Revenue */}
-        <Card className="lg:col-span-2 rounded-xl border border-border bg-card shadow-sm">
+        <Card className="lg:col-span-2 rounded-xl py-3 border border-border bg-card shadow-sm">
           <CardHeader>
             <CardTitle className="text-base font-bold">
               Monthly Revenue
@@ -188,8 +189,8 @@ export default function OverviewPage() {
                     border: "1px solid var(--border)",
                     backgroundColor: "var(--background)",
                   }}
-                  formatter={(val: number) => [
-                    `৳${val.toLocaleString()}`,
+                  formatter={(val) => [
+                    `৳${typeof val === "number" ? val.toLocaleString() : val}`,
                     "Revenue",
                   ]}
                 />
@@ -213,7 +214,7 @@ export default function OverviewPage() {
 
         {/* Orders by Status */}
         <Card className="lg:col-span-1 rounded-xl border border-border bg-card shadow-sm relative">
-          <CardHeader>
+          <CardHeader className="py-3">
             <CardTitle className="text-base font-bold">
               Orders by Status
             </CardTitle>
@@ -258,7 +259,7 @@ export default function OverviewPage() {
       <div className="grid gap-5 grid-cols-1 lg:grid-cols-3">
         {/* Monthly Orders */}
         <Card className="lg:col-span-2 rounded-xl border border-border bg-card shadow-sm">
-          <CardHeader>
+          <CardHeader className="py-3">
             <CardTitle className="text-base font-bold">
               Monthly Orders
             </CardTitle>
@@ -313,7 +314,7 @@ export default function OverviewPage() {
 
         {/* Top Products */}
         <Card className="lg:col-span-1 rounded-xl border border-border bg-card shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardHeader className="flex py-3 flex-row items-center justify-between pb-2">
             <div>
               <CardTitle className="text-base font-bold">
                 Top Products
@@ -331,10 +332,12 @@ export default function OverviewPage() {
                 </span>
                 <div className="h-10 w-10 rounded-md bg-muted flex-shrink-0 overflow-hidden border border-border">
                   {product.images?.[0] ? (
-                    <img
+                    <Image
                       src={product.images[0]}
                       alt=""
                       className="h-full w-full object-cover"
+                      width={40}
+                      height={40}
                     />
                   ) : (
                     <Package className="h-full w-full p-2 text-muted-foreground" />
@@ -346,7 +349,7 @@ export default function OverviewPage() {
                   </p>
                   <div className="flex items-center text-xs text-muted-foreground mt-0.5">
                     <Star className="w-3 h-3 text-amber-400 fill-amber-400 mr-1" />
-                    <span>{product.rating || "4.5"}</span>
+                    <span>4.5</span>
                   </div>
                 </div>
                 <div className="text-right">
@@ -409,7 +412,7 @@ export default function OverviewPage() {
                   </td>
                   <td className="px-4 py-3">
                     <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-xs font-medium capitalize text-muted-foreground">
-                      {order.paymentMethod || "Pending"}
+                      {order.paymentStatus || "Pending"}
                     </span>
                   </td>
                   <td className="px-4 py-3">

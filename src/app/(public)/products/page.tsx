@@ -1,18 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { X, Filter } from "lucide-react"; // Filter icon যোগ করা হয়েছে
+import { X, Filter } from "lucide-react";
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet"; // Sheet কম্পোনেন্ট প্রয়োজন
+} from "@/components/ui/sheet";
 
 import { getCategoryTree } from "@/service/category.service";
 import { getAllProducts } from "@/service/product.service";
@@ -34,7 +34,7 @@ export interface CategoryTree {
   }>;
 }
 
-export default function ProductsPage() {
+function ProductsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get("category");
@@ -349,5 +349,23 @@ export default function ProductsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background">
+          <div className="container mx-auto max-w-7xl px-4 py-8">
+            <div className="flex min-h-[400px] items-center justify-center">
+              <span className="loading loading-spinner loading-lg text-primary" />
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <ProductsContent />
+    </Suspense>
   );
 }
