@@ -27,6 +27,7 @@ import {
   deleteReview,
 } from "@/service/review.service";
 import type { Review } from "@/types/review.types";
+import { getValidImageUrl } from "@/utils/imageUtils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -248,6 +249,11 @@ export default function MyReviewsPage() {
             const product = review.productId;
             const isEditing = editingId === review._id;
 
+            // Skip if product is null or undefined
+            if (!product) {
+              return null;
+            }
+
             return (
               <div
                 key={review._id}
@@ -257,13 +263,13 @@ export default function MyReviewsPage() {
                   <div className="flex gap-4">
                     {/* Thumbnail */}
                     <Link
-                      href={`/products/${product._id}`}
+                      href={`/products/${product?._id || "#"}`}
                       className="shrink-0"
                     >
                       <div className="relative h-14 w-14 overflow-hidden rounded-lg border bg-muted">
                         <Image
-                          src={product.images?.[0] || "/placeholder.png"}
-                          alt={product.title}
+                          src={getValidImageUrl(product?.images)}
+                          alt={product?.title || "Product"}
                           width={56}
                           height={56}
                           className="object-cover w-full h-full"
@@ -276,10 +282,10 @@ export default function MyReviewsPage() {
                       {/* Product Title & Actions */}
                       <div className="flex items-start justify-between gap-2">
                         <Link
-                          href={`/products/${product._id}`}
+                          href={`/products/${product?._id || "#"}`}
                           className="font-bold text-sm line-clamp-1 hover:text-primary transition-colors"
                         >
-                          {product.title}
+                          {product?.title || "Unknown Product"}
                         </Link>
 
                         {!isEditing && (

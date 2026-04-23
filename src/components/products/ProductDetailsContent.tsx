@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Product } from "@/types/product.types";
+import { getValidImageUrl } from "@/utils/imageUtils";
 import { useCart } from "@/hooks/useCart";
 import toast from "react-hot-toast";
 
@@ -82,7 +83,9 @@ export default function ProductDetailsContent({
             {/* Main Image */}
             <div className="relative aspect-square rounded-lg overflow-hidden border bg-card">
               <Image
-                src={product.images[selectedImage] || product.images[0]}
+                src={getValidImageUrl([
+                  product.images[selectedImage] || product.images[0],
+                ])}
                 alt={product.title}
                 fill
                 className="object-contain p-4"
@@ -157,17 +160,17 @@ export default function ProductDetailsContent({
             <div className="space-y-2">
               <div className="flex items-baseline gap-3">
                 <span className="text-4xl font-bold">
-                  ৳{finalPrice.toLocaleString()}
+                  ${finalPrice.toLocaleString()}
                 </span>
                 {discountPercentage > 0 && (
                   <span className="text-xl text-muted-foreground line-through">
-                    ৳{product.price.toLocaleString()}
+                    ${product.price.toLocaleString()}
                   </span>
                 )}
               </div>
               {savings > 0 && (
                 <p className="text-sm text-green-600">
-                  You save ৳{savings.toLocaleString()} ({discountPercentage}%)
+                  You save ${savings.toLocaleString()} ({discountPercentage}%)
                 </p>
               )}
             </div>

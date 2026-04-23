@@ -5,18 +5,23 @@ import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
 import { Product } from "@/types/product.types";
 import { ProductCard } from "@/components/products/ProductCard";
+import { ProductLoadingSkeleton } from "@/components/products/ProductLoadingSclaton";
 
 interface RelatedProductsProps {
   products: Product[];
+  isLoading?: boolean;
 }
 
-export function RelatedProducts({ products }: RelatedProductsProps) {
+export function RelatedProducts({
+  products,
+  isLoading = false,
+}: RelatedProductsProps) {
   return (
     <div className="mt-16">
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-2xl font-bold text-foreground">
           Related Products
-          {products.length > 0 && (
+          {!isLoading && products.length > 0 && (
             <span className="ml-2 text-sm text-muted-foreground">
               ({products.length})
             </span>
@@ -30,7 +35,13 @@ export function RelatedProducts({ products }: RelatedProductsProps) {
         </Link>
       </div>
 
-      {products.length === 0 ? (
+      {isLoading ? (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <ProductLoadingSkeleton key={i} />
+          ))}
+        </div>
+      ) : products.length === 0 ? (
         <p className="text-center text-muted-foreground">
           No related products found
         </p>

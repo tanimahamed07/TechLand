@@ -15,14 +15,14 @@ import { ICart } from "@/types/cart.types";
 // Hardcoded delivery zones
 const DELIVERY_ZONES = [
   {
-    id: "inside-dhaka",
-    name: "Inside Dhaka",
+    id: "inside-capital",
+    name: "Inside Capital",
     charge: 100,
     estimatedDays: "1-2 days",
   },
   {
-    id: "outside-dhaka",
-    name: "Outside Dhaka",
+    id: "outside-capital",
+    name: "Outside Capital",
     charge: 250,
     estimatedDays: "3-5 days",
   },
@@ -56,6 +56,7 @@ export default function CheckoutPage() {
       }
 
       try {
+        setLoading(true);
         const cartData = await getCart();
 
         if (!cartData || cartData.items.length === 0) {
@@ -66,13 +67,17 @@ export default function CheckoutPage() {
         setCart(cartData);
       } catch (error) {
         console.error("Failed to fetch cart:", error);
+        toast.error("Failed to load cart");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCart();
-  }, [session, status, router]);
+    // Only fetch once when session is ready
+    if (status !== "loading" && !cart) {
+      fetchCart();
+    }
+  }, [status, session?.user, router]); // Removed cart from dependencies
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -103,7 +108,10 @@ export default function CheckoutPage() {
 
       // Redirect to Stripe checkout
       if (result.data.url) {
-        window.location.href = result.data.url;
+        // Use window.location.assign for better compatibility
+        window.location.assign(result.data.url);
+      } else {
+        throw new Error("No checkout URL received");
       }
     } catch (error: unknown) {
       console.error("Checkout failed:", error);
@@ -283,7 +291,7 @@ export default function CheckoutPage() {
                         </p>
                       </div>
                     </div>
-                    <p className="font-semibold text-primary">৳{zone.charge}</p>
+                    <p className="font-semibold text-primary">${zone.charge}</p>
                   </label>
                 ))}
               </div>
@@ -371,7 +379,7 @@ export default function CheckoutPage() {
                         : "text-muted-foreground"
                     }
                   >
-                    {deliveryCharge > 0 ? `৳${deliveryCharge}` : "Select zone"}
+                    {deliveryCharge > 0 ? `$${deliveryCharge}` : "Select zone"}
                   </span>
                 </div>
               </div>

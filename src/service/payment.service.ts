@@ -23,46 +23,62 @@ export interface CheckoutData {
   deliveryZoneId?: string;
 }
 
-// ১. Checkout session তৈরি করা (Create Stripe Checkout Session)
+// Create Stripe Checkout Session
 export const createCheckoutSession = async (
   data: CheckoutData,
 ): Promise<CheckoutSessionResponse> => {
-  const token = await getAuthToken();
-  const response = await fetch(
-    `${API_URL}/api/v1/payment/create-checkout-session`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
+  try {
+    const token = await getAuthToken();
+    const response = await fetch(
+      `${API_URL}/api/v1/payment/create-checkout-session`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
       },
-      body: JSON.stringify(data),
-    },
-  );
+    );
 
-  const result: CheckoutSessionResponse = await response.json();
-  if (!response.ok)
-    throw new Error(result.message || "Failed to create checkout session");
-  return result;
+    const result: CheckoutSessionResponse = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || "Failed to create checkout session");
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Checkout session error:", error);
+    throw error;
+  }
 };
 
-// ২. Payment verify করা (Verify Stripe Payment)
+// Verify Payment Status
 export const verifyPayment = async (
   sessionId: string,
 ): Promise<PaymentVerifyResponse> => {
-  const token = await getAuthToken();
-  const response = await fetch(
-    `${API_URL}/api/v1/payment/verify/${sessionId}`,
-    {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
+  try {
+    const token = await getAuthToken();
+    const response = await fetch(
+      `${API_URL}/api/v1/payment/verify/${sessionId}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       },
-    },
-  );
+    );
 
-  const result: PaymentVerifyResponse = await response.json();
-  if (!response.ok)
-    throw new Error(result.message || "Failed to verify payment");
-  return result;
+    const result: PaymentVerifyResponse = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || "Failed to verify payment");
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Payment verification error:", error);
+    throw error;
+  }
 };

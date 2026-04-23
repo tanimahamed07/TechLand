@@ -13,6 +13,7 @@ import {
   adminDeleteProduct,
 } from "@/service/admin.product.service";
 import type { Product } from "@/types/product.types";
+import { getValidImageUrl } from "@/utils/imageUtils";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -185,10 +186,7 @@ export default function AdminProductsPage() {
                     <div className="flex items-center gap-3">
                       <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border bg-muted">
                         <Image
-                          src={
-                            product.images?.[0] ||
-                            "https://placehold.co/48x48/e2e8f0/64748b?text=?"
-                          }
+                          src={getValidImageUrl(product.images)}
                           alt={product.title}
                           width={48}
                           height={48}
@@ -215,14 +213,14 @@ export default function AdminProductsPage() {
                   <td className="px-4 py-3">
                     <div>
                       <p className="font-semibold text-primary">
-                        ৳
+                        $
                         {(
                           product.discountPrice || product.price
                         ).toLocaleString()}
                       </p>
                       {product.discountPrice && (
                         <p className="text-xs text-muted-foreground line-through">
-                          ৳{product.price.toLocaleString()}
+                          ${product.price.toLocaleString()}
                         </p>
                       )}
                     </div>

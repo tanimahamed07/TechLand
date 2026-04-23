@@ -47,6 +47,8 @@ const RATING_TABS = [
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
+import { getValidImageUrl } from "@/utils/imageUtils";
+
 export default function AdminReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
@@ -227,7 +229,7 @@ export default function AdminReviewsPage() {
                           {product?.images?.[0] ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
-                              src={product.images[0]}
+                              src={getValidImageUrl(product.images)}
                               alt={product.title}
                               className="h-9 w-9 shrink-0 rounded-lg border object-cover"
                             />

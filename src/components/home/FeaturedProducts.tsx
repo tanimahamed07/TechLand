@@ -4,25 +4,10 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { ProductCard } from "../products/ProductCard";
+import { ProductLoadingSkeleton } from "../products/ProductLoadingSclaton";
 import { getFeaturedProducts } from "@/service/product.service";
 import { Product } from "@/types/product.types";
 import { Button } from "../ui/button";
-
-function SkeletonCard() {
-  return (
-    <div className="card bg-base-100 border border-base-200 overflow-hidden">
-      <div className="skeleton aspect-square w-full rounded-none" />
-      <div className="card-body p-4 gap-2">
-        <div className="skeleton h-3 w-16 rounded" />
-        <div className="skeleton h-4 w-full rounded" />
-        <div className="skeleton h-4 w-3/4 rounded" />
-        <div className="skeleton h-3 w-24 rounded" />
-        <div className="skeleton h-3 w-20 rounded mt-1" />
-        <div className="skeleton h-9 w-full rounded mt-2" />
-      </div>
-    </div>
-  );
-}
 
 export default function FeaturedProducts() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -93,15 +78,14 @@ export default function FeaturedProducts() {
         {/* Product Grid - 10 products in 2 rows */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
           {isLoading
-            ? Array.from({ length: 10 }).map((_, i) => <SkeletonCard key={i} />)
-            : products.slice(0, 10).map((product, index) => (
-                <ProductCard
-                  key={product._id}
-                  product={product}
-                  // First 5 products eager loading for LCP
-                  loading={index < 5 ? "eager" : "lazy"}
-                />
-              ))}
+            ? Array.from({ length: 10 }).map((_, i) => (
+                <ProductLoadingSkeleton key={i} />
+              ))
+            : products
+                .slice(0, 10)
+                .map((product) => (
+                  <ProductCard key={product._id} product={product} />
+                ))}
         </div>
 
         {/* Empty state */}

@@ -319,7 +319,7 @@ export default function OrderTracker({ data }: { data: TrackingData }) {
           {(data.deliveryCharge ?? 0) > 0 && (
             <div className="flex justify-between text-muted-foreground">
               <span>Delivery</span>
-              <span>৳{data.deliveryCharge}</span>
+              <span>${data.deliveryCharge}</span>
             </div>
           )}
           <div className="flex justify-between font-bold text-base pt-1">

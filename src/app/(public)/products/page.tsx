@@ -1,6 +1,8 @@
 import { getAllProducts } from "@/service/product.service";
 import { getCategoryTree } from "@/service/category.service";
 import ProductsContent from "@/components/products/ProductsContent";
+import { Product } from "@/types/product.types";
+import { CategoryTree, ProductsPageMeta } from "@/types/products-page.types";
 
 export default async function ProductsPage({
   searchParams,
@@ -59,15 +61,26 @@ export default async function ProductsPage({
     query.sort = sortMap[params.sortBy] || "-createdAt";
   }
 
-  const [productsData, categoriesData] = await Promise.all([
-    getAllProducts(query),
-    getCategoryTree(),
-  ]);
+  // Data fetching with error handling and proper types
+  let products: Product[] = [];
+  let categories: CategoryTree[] = [];
+  let meta: ProductsPageMeta | undefined = undefined;
 
-  const products = productsData.data || [];
-  const categories = categoriesData.data || [];
-  const meta = productsData.meta;
+  try {
+    const [productsData, categoriesData] = await Promise.all([
+      getAllProducts(query),
+      getCategoryTree(),
+    ]);
 
+    products = productsData.data || [];
+    categories = categoriesData.data || [];
+    meta = productsData.meta;
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    // Data remains as empty arrays/undefined
+  }
+
+  // JSX rendering outside try/catch
   return (
     <ProductsContent
       initialProducts={products}

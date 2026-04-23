@@ -13,6 +13,9 @@ import { toast } from "react-hot-toast";
 import type { Product } from "@/types/product.types";
 import { addToCart } from "@/service/cart.service";
 import { toggleWishlist } from "@/service/wishlist.service";
+import { getValidImageUrl } from "@/utils/imageUtils";
+
+
 
 interface ProductCardProps {
   product: Product;
@@ -99,10 +102,7 @@ export const ProductCard = ({
         </button>
 
         <Image
-          src={
-            product.images[0] ||
-            "https://placehold.co/400x300/e2e8f0/64748b?text=No+Image"
-          }
+          src={getValidImageUrl(product.images)}
           alt={product.title}
           width={400}
           height={300}
@@ -145,11 +145,11 @@ export const ProductCard = ({
           {/* প্রাইস সেকশন */}
           <div className="mt-1.5 flex items-baseline gap-1.5">
             <p className="text-base font-bold text-primary">
-              ৳{(product.discountPrice || product.price).toLocaleString()}
+              ${(product.discountPrice || product.price).toLocaleString()}
             </p>
             {product.discountPrice && (
               <p className="text-xs text-muted-foreground line-through opacity-70">
-                ৳{product.price.toLocaleString()}
+                ${product.price.toLocaleString()}
               </p>
             )}
           </div>

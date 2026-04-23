@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { ProductCard } from "@/components/products/ProductCard";
+import { ProductGridSkeleton } from "@/components/products/ProductLoadingSclaton";
 import { Product } from "@/types/product.types";
 import {
   SortOption,
@@ -36,97 +37,78 @@ export default function ProductsContent({
 }: ProductsContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const categoryParam = searchParams.get("category");
-  const subcategoryParam = searchParams.get("subcategory");
-  const brandParam = searchParams.get("brand");
-  const searchParam = searchParams.get("search");
-  const sortByParam = searchParams.get("sortBy");
-
-  const [searchQuery, setSearchQuery] = useState(searchParam || "");
-  const [sortBy, setSortBy] = useState<SortOption>(
-    (sortByParam as SortOption) || "newest",
+  const [searchQuery, setSearchQuery] = useState(
+    searchParams.get("search") || "",
   );
+  const [sortBy, setSortBy] = useState<SortOption>(
+    (searchParams.get("sortBy") as SortOption) || "newest",
+  );
+  const [isPending, startTransition] = useTransition();
 
-  const selectedCategory = subcategoryParam || categoryParam;
-  const selectedBrand = brandParam;
-  const products = initialProducts;
+  const selectedCategory =
+    searchParams.get("subcategory") || searchParams.get("category");
+  const selectedBrand = searchParams.get("brand");
+  const searchParam = searchParams.get("search");
 
-  const updateUrlParams = (updates: UrlParamUpdates) => {
+  const updateUrl = (updates: UrlParamUpdates) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", "1");
 
     Object.entries(updates).forEach(([key, value]) => {
-      if (value === null) params.delete(key);
-      else if (value !== undefined) params.set(key, value);
+      if (value === null || value === undefined) params.delete(key);
+      else params.set(key, value);
     });
-    router.push(`/products?${params.toString()}`);
+
+    startTransition(() => {
+      router.push(`/products?${params.toString()}`);
+    });
   };
 
   const clearFilters = () => {
-    router.push("/products");
     setSearchQuery("");
     setSortBy("newest");
+    startTransition(() => {
+      router.push("/products");
+    });
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchQuery(value);
-
-    if (value.trim() === "" && searchParam) {
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete("search");
-      params.set("page", "1");
-      router.push(`/products?${params.toString()}`);
-    }
-  };
-
-  const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("page", "1");
-
-    if (searchQuery.trim()) {
-      params.set("search", searchQuery.trim());
-    } else {
-      params.delete("search");
-    }
-    router.push(`/products?${params.toString()}`);
+    updateUrl({ search: searchQuery.trim() || null });
   };
 
-  const handleSortChange = (newSort: SortOption) => {
+  const handleSort = (newSort: SortOption) => {
     setSortBy(newSort);
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("sortBy", newSort);
-    params.set("page", "1");
-    router.push(`/products?${params.toString()}`);
+    updateUrl({ sortBy: newSort });
   };
 
-  const handlePageChange = (newPage: number) => {
+  const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams.toString());
-    params.set("page", String(newPage));
-    router.push(`/products?${params.toString()}`);
+    params.set("page", String(page));
+    startTransition(() => {
+      router.push(`/products?${params.toString()}`);
+    });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto max-w-7xl px-4 py-8">
+        {/* Header */}
         <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-              Explore Products
-            </h1>
+            <h1 className="text-2xl md:text-3xl font-bold">Explore Products</h1>
             <p className="text-muted-foreground">
               Discover our full collection of electronics
             </p>
           </div>
           <div className="w-full md:max-w-md">
-            <form onSubmit={handleSearchSubmit}>
+            <form onSubmit={handleSearch}>
               <Input
                 type="search"
                 placeholder="Search products..."
                 value={searchQuery}
-                onChange={handleSearchChange}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full"
               />
             </form>
@@ -134,19 +116,24 @@ export default function ProductsContent({
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
+          {/* Desktop Sidebar */}
           <aside className="hidden lg:block w-64 shrink-0">
             <Sidebar
               categories={initialCategories}
               products={initialProducts}
               selectedCategory={selectedCategory}
               selectedBrand={selectedBrand}
-              updateUrlParams={updateUrlParams}
+              updateUrlParams={updateUrl}
               clearFilters={clearFilters}
+              isLoading={isPending}
             />
           </aside>
 
+          {/* Main Content */}
           <div className="flex-1">
+            {/* Filter Bar */}
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              {/* Mobile Filter Button */}
               <div className="flex items-center gap-2 lg:hidden">
                 <Sheet>
                   <SheetTrigger asChild>
@@ -170,28 +157,25 @@ export default function ProductsContent({
                       products={initialProducts}
                       selectedCategory={selectedCategory}
                       selectedBrand={selectedBrand}
-                      updateUrlParams={updateUrlParams}
+                      updateUrlParams={updateUrl}
                       clearFilters={clearFilters}
+                      isLoading={isPending}
                     />
                   </SheetContent>
                 </Sheet>
-
                 <p className="text-xs text-muted-foreground italic">
-                  {meta?.total || products.length} items
+                  {meta?.total || initialProducts.length} items
                 </p>
               </div>
 
+              {/* Active Filters */}
               <div className="hidden sm:flex flex-wrap items-center gap-2">
                 {searchParam && (
                   <Badge variant="secondary" className="gap-1">
                     Search: {searchParam}
                     <button
-                      onClick={() => {
-                        setSearchQuery("");
-                        updateUrlParams({ search: null });
-                      }}
+                      onClick={() => updateUrl({ search: null })}
                       className="ml-1 hover:bg-muted rounded-full p-0.5"
-                      type="button"
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -202,10 +186,9 @@ export default function ProductsContent({
                     Category: {selectedCategory}
                     <button
                       onClick={() =>
-                        updateUrlParams({ category: null, subcategory: null })
+                        updateUrl({ category: null, subcategory: null })
                       }
                       className="ml-1 hover:bg-muted rounded-full p-0.5"
-                      type="button"
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -215,9 +198,8 @@ export default function ProductsContent({
                   <Badge variant="secondary" className="gap-1">
                     Brand: {selectedBrand}
                     <button
-                      onClick={() => updateUrlParams({ brand: null })}
+                      onClick={() => updateUrl({ brand: null })}
                       className="ml-1 hover:bg-muted rounded-full p-0.5"
-                      type="button"
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -225,16 +207,13 @@ export default function ProductsContent({
                 )}
               </div>
 
-              <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
-                <span className="text-sm text-muted-foreground whitespace-nowrap">
-                  Sort:
-                </span>
+              {/* Sort Dropdown */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Sort:</span>
                 <select
                   value={sortBy}
-                  onChange={(e) =>
-                    handleSortChange(e.target.value as SortOption)
-                  }
-                  className="rounded-md border border-input bg-background px-3 py-1.5 text-sm w-full sm:w-auto focus:ring-2 focus:ring-primary outline-none"
+                  onChange={(e) => handleSort(e.target.value as SortOption)}
+                  className="rounded-md border border-input bg-background px-3 py-1.5 text-sm focus:ring-2 focus:ring-primary outline-none"
                 >
                   <option value="newest">Newest</option>
                   <option value="price-low">Price: Low to High</option>
@@ -245,7 +224,10 @@ export default function ProductsContent({
               </div>
             </div>
 
-            {products.length === 0 ? (
+            {/* Products Grid */}
+            {isPending ? (
+              <ProductGridSkeleton count={12} />
+            ) : initialProducts.length === 0 ? (
               <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg border border-dashed p-8">
                 <p className="text-muted-foreground">
                   No products found matching your criteria.
@@ -255,63 +237,42 @@ export default function ProductsContent({
                 </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                {products.map((product) => (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                {initialProducts.map((product) => (
                   <ProductCard key={product._id} product={product} />
                 ))}
               </div>
             )}
 
-            {products.length > 0 && meta && (
-              <div className="mt-12 flex flex-col items-center gap-6">
-                <p className="text-sm text-muted-foreground">
-                  Showing {(meta.page - 1) * meta.limit + 1} to{" "}
-                  {Math.min(meta.page * meta.limit, meta.total)} of {meta.total}{" "}
-                  products
-                </p>
+            {/* Pagination */}
+            {initialProducts.length > 0 &&
+              meta &&
+              !isPending &&
+              meta.totalPages > 1 && (
+                <div className="mt-12 flex flex-col items-center gap-6">
+                  <p className="text-sm text-muted-foreground">
+                    Showing {(meta.page - 1) * meta.limit + 1} to{" "}
+                    {Math.min(meta.page * meta.limit, meta.total)} of{" "}
+                    {meta.total} products
+                  </p>
 
-                {meta.totalPages > 1 && (
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handlePageChange(meta.page - 1)}
                       disabled={meta.page === 1}
-                      className="px-3"
                     >
                       Previous
                     </Button>
 
-                    <div className="flex items-center gap-1">
-                      {meta.page > 3 && (
-                        <>
-                          <Button
-                            variant={meta.page === 1 ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => handlePageChange(1)}
-                            className="w-9 h-9 p-0"
-                          >
-                            1
-                          </Button>
-                          {meta.page > 4 && (
-                            <span className="px-2 text-muted-foreground">
-                              ...
-                            </span>
-                          )}
-                        </>
-                      )}
-
-                      {Array.from({ length: meta.totalPages }, (_, i) => i + 1)
-                        .filter((page) => {
-                          return (
-                            page === meta.page ||
-                            page === meta.page - 1 ||
-                            page === meta.page + 1 ||
-                            page === meta.page - 2 ||
-                            page === meta.page + 2
-                          );
-                        })
-                        .map((page) => (
+                    {/* Simple pagination - show current page and nearby pages */}
+                    {Array.from(
+                      { length: Math.min(10, meta.totalPages) },
+                      (_, i) => {
+                        const page = Math.max(1, meta.page - 2) + i;
+                        if (page > meta.totalPages) return null;
+                        return (
                           <Button
                             key={page}
                             variant={page === meta.page ? "default" : "outline"}
@@ -321,44 +282,21 @@ export default function ProductsContent({
                           >
                             {page}
                           </Button>
-                        ))}
-
-                      {meta.page < meta.totalPages - 2 && (
-                        <>
-                          {meta.page < meta.totalPages - 3 && (
-                            <span className="px-2 text-muted-foreground">
-                              ...
-                            </span>
-                          )}
-                          <Button
-                            variant={
-                              meta.page === meta.totalPages
-                                ? "default"
-                                : "outline"
-                            }
-                            size="sm"
-                            onClick={() => handlePageChange(meta.totalPages)}
-                            className="w-9 h-9 p-0"
-                          >
-                            {meta.totalPages}
-                          </Button>
-                        </>
-                      )}
-                    </div>
+                        );
+                      },
+                    )}
 
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handlePageChange(meta.page + 1)}
                       disabled={meta.page === meta.totalPages}
-                      className="px-3"
                     >
                       Next
                     </Button>
                   </div>
-                )}
-              </div>
-            )}
+                </div>
+              )}
           </div>
         </div>
       </div>

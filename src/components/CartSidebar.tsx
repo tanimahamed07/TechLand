@@ -1,10 +1,17 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Minus, Plus, ShoppingBag, ShoppingCart, Trash2 } from "lucide-react";
+import {
+  Minus,
+  Plus,
+  ShoppingBag,
+  ShoppingCart,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 
@@ -37,16 +44,47 @@ export default function CartSidebar({
   const router = useRouter();
   const [cart, setCart] = useState<ICart | null>(null);
   const [loading, setLoading] = useState(false);
+  const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set());
+  const [hasInitialFetch, setHasInitialFetch] = useState(false);
 
-  // Cart fetch করা
+  // Prevent mobile keyboard on mount
+  useEffect(() => {
+    if (isOpen && typeof window !== "undefined") {
+      // Blur any active input to prevent keyboard
+      const activeElement = document.activeElement as HTMLElement;
+      if (activeElement && activeElement.tagName === "INPUT") {
+        activeElement.blur();
+      }
+
+      // Prevent viewport zoom that can trigger keyboard
+      const viewport = document.querySelector('meta[name="viewport"]');
+      if (viewport) {
+        const originalContent = viewport.getAttribute("content");
+        viewport.setAttribute(
+          "content",
+          "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+        );
+
+        // Restore original viewport on close
+        return () => {
+          if (originalContent) {
+            viewport.setAttribute("content", originalContent);
+          }
+        };
+      }
+    }
+  }, [isOpen]);
+
+  // Fetch cart data only once when sidebar opens
   useEffect(() => {
     const fetchCart = async () => {
-      if (!session?.user || !isOpen) return;
+      if (!session?.user || !isOpen || hasInitialFetch) return;
 
       try {
         setLoading(true);
         const data = await getCart();
         setCart(data);
+        setHasInitialFetch(true);
 
         // Update cart count in Navbar
         const itemCount =
@@ -59,44 +97,112 @@ export default function CartSidebar({
       }
     };
 
-    // Immediate fetch when sidebar opens
-    if (isOpen && session?.user) {
-      fetchCart();
-    }
+    fetchCart();
+  }, [session?.user, isOpen, hasInitialFetch, onCartUpdate]);
 
-    // Listen for cart updates from other components
-    const handleCartUpdate = () => {
+  // Reset fetch flag when sidebar closes
+  useEffect(() => {
+    if (!isOpen) {
+      // Use setTimeout to avoid synchronous setState in effect
+      const timer = setTimeout(() => {
+        setHasInitialFetch(false);
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  // Listen for external cart updates (from other components)
+  useEffect(() => {
+    const handleExternalCartUpdate = () => {
       if (isOpen && session?.user) {
+        // Refetch cart when updated from outside
+        const fetchCart = async () => {
+          try {
+            const data = await getCart();
+            setCart(data);
+            const itemCount =
+              data?.items.reduce((sum, item) => sum + item.quantity, 0) || 0;
+            onCartUpdate?.(itemCount);
+          } catch (error) {
+            console.error("Failed to fetch cart:", error);
+          }
+        };
         fetchCart();
       }
     };
 
-    window.addEventListener("cartUpdated", handleCartUpdate);
-    return () => window.removeEventListener("cartUpdated", handleCartUpdate);
-  }, [session, isOpen, onCartUpdate]);
+    window.addEventListener("cartUpdated", handleExternalCartUpdate);
+    return () =>
+      window.removeEventListener("cartUpdated", handleExternalCartUpdate);
+  }, [isOpen, session?.user, onCartUpdate]);
 
-  // Quantity update করা
+  // Optimistic quantity update (no skeleton loading)
   const handleUpdateQuantity = async (itemId: string, newQuantity: number) => {
+    if (newQuantity < 1 || !cart) return;
+
+    // Add to updating set for visual feedback
+    setUpdatingItems((prev) => new Set(prev).add(itemId));
+
+    // Optimistic update - immediate UI change
+    const optimisticCart = {
+      ...cart,
+      items: cart.items.map((item) =>
+        item._id === itemId ? { ...item, quantity: newQuantity } : item,
+      ),
+    };
+
+    // Recalculate total
+    optimisticCart.totalAmount = optimisticCart.items.reduce(
+      (sum, item) => sum + item.quantity * item.price,
+      0,
+    );
+
+    setCart(optimisticCart);
+
+    // Update navbar count immediately
+    const itemCount = optimisticCart.items.reduce(
+      (sum, item) => sum + item.quantity,
+      0,
+    );
+    onCartUpdate?.(itemCount);
+
     try {
+      // Background API call
       const updatedCart = await updateCartItem(itemId, newQuantity);
+
+      // Sync with server response
       setCart(updatedCart);
 
-      // Update cart count
-      const itemCount = updatedCart.items.reduce(
+      const serverItemCount = updatedCart.items.reduce(
         (sum, item) => sum + item.quantity,
         0,
       );
-      onCartUpdate?.(itemCount);
-      toast.success("Cart updated");
+      onCartUpdate?.(serverItemCount);
     } catch (error) {
       console.error("Failed to update quantity:", error);
       toast.error("Failed to update cart");
+
+      // Revert on error
+      setCart(cart);
+      const revertedItemCount = cart.items.reduce(
+        (sum, item) => sum + item.quantity,
+        0,
+      );
+      onCartUpdate?.(revertedItemCount);
+    } finally {
+      // Remove from updating set
+      setUpdatingItems((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(itemId);
+        return newSet;
+      });
     }
   };
 
-  // Item remove করা with confirmation
+  // Remove item with confirmation
   const handleRemoveItem = async (itemId: string, productTitle: string) => {
-    // Confirmation toast with undo option
+    if (!cart) return;
+
     toast(
       (t) => (
         <div className="flex flex-col gap-2">
@@ -108,20 +214,50 @@ export default function CartSidebar({
             <button
               onClick={async () => {
                 toast.dismiss(t.id);
+
+                const originalCart = { ...cart };
+
+                // Optimistic removal
+                const optimisticCart = {
+                  ...cart,
+                  items: cart.items.filter((item) => item._id !== itemId),
+                };
+
+                optimisticCart.totalAmount = optimisticCart.items.reduce(
+                  (sum, item) => sum + item.quantity * item.price,
+                  0,
+                );
+
+                setCart(optimisticCart);
+
+                const itemCount = optimisticCart.items.reduce(
+                  (sum, item) => sum + item.quantity,
+                  0,
+                );
+                onCartUpdate?.(itemCount);
+
                 try {
                   const updatedCart = await removeCartItem(itemId);
                   setCart(updatedCart);
 
-                  // Update cart count
-                  const itemCount = updatedCart.items.reduce(
+                  const serverItemCount = updatedCart.items.reduce(
                     (sum, item) => sum + item.quantity,
                     0,
                   );
-                  onCartUpdate?.(itemCount);
+                  onCartUpdate?.(serverItemCount);
+
                   toast.success("Item removed from cart");
                 } catch (error) {
                   console.error("Failed to remove item:", error);
                   toast.error("Failed to remove item");
+
+                  // Revert on error
+                  setCart(originalCart);
+                  const revertedItemCount = originalCart.items.reduce(
+                    (sum, item) => sum + item.quantity,
+                    0,
+                  );
+                  onCartUpdate?.(revertedItemCount);
                 }
               }}
               className="rounded bg-destructive px-3 py-1.5 text-xs font-medium text-destructive-foreground hover:bg-destructive/90"
@@ -137,13 +273,10 @@ export default function CartSidebar({
           </div>
         </div>
       ),
-      {
-        duration: 5000,
-      },
+      { duration: 5000 },
     );
   };
 
-  // Checkout এ যাওয়া
   const handleProceed = () => {
     onClose();
     if (!session?.user) {
@@ -153,7 +286,6 @@ export default function CartSidebar({
     }
   };
 
-  // Format price
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -166,17 +298,67 @@ export default function CartSidebar({
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="flex w-full flex-col gap-0 p-0 sm:max-w-md">
+      <SheetContent
+        className="cart-sidebar flex w-full flex-col gap-0 p-0 sm:max-w-md"
+        showCloseButton={false} // Disable auto-focus close button
+        onOpenAutoFocus={(e) => {
+          e.preventDefault();
+          // Additional focus prevention for mobile
+          if (typeof window !== "undefined") {
+            // Blur any active element to prevent keyboard
+            const activeElement = document.activeElement as HTMLElement;
+            if (activeElement && activeElement.blur) {
+              activeElement.blur();
+            }
+
+            // Prevent any input from getting focus
+            setTimeout(() => {
+              const inputs = document.querySelectorAll(
+                "input, textarea, select",
+              );
+              inputs.forEach((input) => {
+                if (input instanceof HTMLElement) {
+                  input.blur();
+                }
+              });
+            }, 0);
+          }
+        }}
+        onCloseAutoFocus={(e) => e.preventDefault()}
+        onPointerDownOutside={(e) => {
+          // Prevent focus when clicking outside
+          e.preventDefault();
+        }}
+        onInteractOutside={(e) => {
+          // Prevent focus when interacting outside
+          const target = e.target as HTMLElement;
+          if (target && target.tagName === "INPUT") {
+            e.preventDefault();
+          }
+        }}
+      >
         {/* Header */}
         <SheetHeader className="border-b px-6 py-4">
-          <SheetTitle className="flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5 text-primary" />
-            <span>My Cart</span>
-            {totalItems > 0 && (
-              <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground">
-                {totalItems}
-              </span>
-            )}
+          <SheetTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ShoppingCart className="h-5 w-5 text-primary" />
+              <span>My Cart</span>
+              {totalItems > 0 && (
+                <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground">
+                  {totalItems}
+                </span>
+              )}
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              onClick={onClose}
+              onFocus={(e) => e.target.blur()} // Prevent focus
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </Button>
           </SheetTitle>
         </SheetHeader>
 
@@ -187,18 +369,13 @@ export default function CartSidebar({
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="border-b py-6">
                   <div className="flex gap-4">
-                    {/* Image skeleton */}
                     <div className="h-20 w-20 shrink-0 animate-pulse rounded-md bg-gray-200 dark:bg-gray-700" />
-
-                    {/* Info skeleton */}
                     <div className="flex flex-1 flex-col justify-between">
                       <div className="space-y-2">
                         <div className="h-4 w-3/4 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
                         <div className="h-3 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
                         <div className="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
                       </div>
-
-                      {/* Controls skeleton */}
                       <div className="flex items-center justify-between">
                         <div className="h-8 w-24 animate-pulse rounded-md bg-gray-200 dark:bg-gray-700" />
                         <div className="h-8 w-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
@@ -219,7 +396,11 @@ export default function CartSidebar({
                   Sign in to view your cart
                 </p>
               </div>
-              <Button variant="outline" onClick={() => router.push("/login")}>
+              <Button
+                variant="outline"
+                onClick={() => router.push("/login")}
+                onFocus={(e) => e.target.blur()} // Prevent focus
+              >
                 Sign In
               </Button>
             </div>
@@ -234,7 +415,12 @@ export default function CartSidebar({
                   Looks like you haven&apos;t added anything yet.
                 </p>
               </div>
-              <Button variant="outline" onClick={onClose} asChild>
+              <Button
+                variant="outline"
+                onClick={onClose}
+                asChild
+                onFocus={(e) => e.target.blur()} // Prevent focus
+              >
                 <Link href="/products">Browse Products</Link>
               </Button>
             </div>
@@ -289,14 +475,21 @@ export default function CartSidebar({
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 rounded-none"
-                            disabled={item.quantity <= 1}
+                            disabled={
+                              item.quantity <= 1 || updatingItems.has(item._id)
+                            }
                             onClick={() =>
                               handleUpdateQuantity(item._id, item.quantity - 1)
                             }
+                            onFocus={(e) => e.target.blur()} // Prevent focus
                           >
                             <Minus className="h-3 w-3" />
                           </Button>
-                          <span className="w-8 text-center text-xs font-medium">
+                          <span
+                            className={`w-8 text-center text-xs font-medium ${
+                              updatingItems.has(item._id) ? "opacity-50" : ""
+                            }`}
+                          >
                             {item.quantity}
                           </span>
                           <Button
@@ -304,11 +497,13 @@ export default function CartSidebar({
                             size="icon"
                             className="h-8 w-8 rounded-none"
                             disabled={
-                              item.quantity >= (item.productId?.stock || 0)
+                              item.quantity >= (item.productId?.stock || 0) ||
+                              updatingItems.has(item._id)
                             }
                             onClick={() =>
                               handleUpdateQuantity(item._id, item.quantity + 1)
                             }
+                            onFocus={(e) => e.target.blur()} // Prevent focus
                           >
                             <Plus className="h-3 w-3" />
                           </Button>
@@ -323,6 +518,7 @@ export default function CartSidebar({
                               item.productId?.title || "Product",
                             )
                           }
+                          onFocus={(e) => e.target.blur()} // Prevent focus
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -346,10 +542,20 @@ export default function CartSidebar({
               Shipping and taxes calculated at checkout.
             </p>
             <div className="flex flex-col gap-2">
-              <Button className="w-full" size="lg" onClick={handleProceed}>
+              <Button
+                className="w-full"
+                size="lg"
+                onClick={handleProceed}
+                onFocus={(e) => e.target.blur()} // Prevent focus
+              >
                 {session?.user ? "Proceed to Checkout" : "Sign In to Checkout"}
               </Button>
-              <Button variant="ghost" className="w-full" onClick={onClose}>
+              <Button
+                variant="ghost"
+                className="w-full"
+                onClick={onClose}
+                onFocus={(e) => e.target.blur()} // Prevent focus
+              >
                 Continue Shopping
               </Button>
             </div>

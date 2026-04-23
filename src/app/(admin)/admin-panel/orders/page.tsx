@@ -190,10 +190,10 @@ function OrderModal({
                       {item.quantity}
                     </td>
                     <td className="px-4 py-2.5 text-right text-muted-foreground">
-                      ৳{item.price.toFixed(2)}
+                      ${item.price.toFixed(2)}
                     </td>
                     <td className="px-4 py-2.5 text-right font-semibold">
-                      ৳{(item.price * item.quantity).toFixed(2)}
+                      ${(item.price * item.quantity).toFixed(2)}
                     </td>
                   </tr>
                 ))}
@@ -206,19 +206,19 @@ function OrderModal({
             {(order.deliveryCharge ?? 0) > 0 && (
               <div className="flex justify-between text-muted-foreground">
                 <span>Delivery</span>
-                <span>৳{order.deliveryCharge}</span>
+                <span>${order.deliveryCharge}</span>
               </div>
             )}
             {(order.couponDiscount ?? 0) > 0 && (
               <div className="flex justify-between text-green-600">
                 <span>Discount</span>
-                <span>-৳{order.couponDiscount}</span>
+                <span>-${order.couponDiscount}</span>
               </div>
             )}
             <div className="flex justify-between border-t border-border pt-1.5 font-bold">
               <span>Total</span>
               <span className="text-primary">
-                ৳{order.totalAmount.toFixed(2)}
+                ${order.totalAmount.toFixed(2)}
               </span>
             </div>
             <div className="flex items-center gap-2 pt-1">
@@ -452,7 +452,7 @@ export default function AdminOrdersPage() {
                         {order.items.length}
                       </td>
                       <td className="px-4 py-3 text-right font-semibold">
-                        ৳{order.totalAmount.toFixed(2)}
+                        ${order.totalAmount.toFixed(2)}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <span

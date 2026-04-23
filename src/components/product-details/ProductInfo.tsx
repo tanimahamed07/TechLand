@@ -21,6 +21,11 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { addToCart } from "@/service/cart.service";
 import { toggleWishlist } from "@/service/wishlist.service";
+import { getValidImageUrl } from "@/utils/imageUtils";
+
+
+
+
 
 interface ProductInfoProps {
   product: Product;
@@ -80,11 +85,11 @@ export function ProductInfo({ product }: ProductInfoProps) {
       {/* Price */}
       <div className="flex items-baseline gap-3">
         <span className="text-4xl font-bold text-primary">
-          ৳{(product.discountPrice || product.price).toLocaleString()}
+          ${(product.discountPrice || product.price).toLocaleString()}
         </span>
         {product.discountPrice && (
           <span className="text-xl text-muted-foreground line-through">
-            ৳{product.price.toLocaleString()}
+            ${product.price.toLocaleString()}
           </span>
         )}
       </div>
@@ -204,7 +209,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
                 Free Shipping
               </p>
               <p className="text-xs text-muted-foreground">
-                On orders over ৳5000
+                On orders over $50
               </p>
             </div>
           </div>

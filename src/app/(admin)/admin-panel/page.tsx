@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/card";
 import { getDashboardOverview } from "@/service/dashboard.service";
 import type { DashboardOverview } from "@/types/dashboard.types";
+import { getValidImageUrl } from "@/utils/imageUtils";
 import Image from "next/image";
 
 const statusColors: Record<string, string> = {
@@ -72,7 +73,7 @@ export default function OverviewPage() {
   const statCards = [
     {
       label: "Total Revenue",
-      value: `৳${(data?.totalRevenue || 0).toLocaleString()}`,
+      value: `$${(data?.totalRevenue || 0).toLocaleString()}`,
       icon: DollarSign,
       color: "text-emerald-500",
       bg: "bg-emerald-500/10",
@@ -182,7 +183,7 @@ export default function OverviewPage() {
                     tickLine={false}
                     tick={{ fontSize: 12 }}
                     className="fill-muted-foreground"
-                    tickFormatter={(val) => `৳${val / 1000}K`}
+                    tickFormatter={(val) => `$${val / 1000}K`}
                   />
                   <Tooltip
                     contentStyle={{
@@ -191,7 +192,7 @@ export default function OverviewPage() {
                       backgroundColor: "var(--background)",
                     }}
                     formatter={(val) => [
-                      `৳${typeof val === "number" ? val.toLocaleString() : val}`,
+                      `$${typeof val === "number" ? val.toLocaleString() : val}`,
                       "Revenue",
                     ]}
                   />
@@ -337,9 +338,9 @@ export default function OverviewPage() {
                   {idx + 1}
                 </span>
                 <div className="h-10 w-10 rounded-md bg-muted flex-shrink-0 overflow-hidden border border-border">
-                  {product.images?.[0] ? (
+                  {getValidImageUrl(product.images) ? (
                     <Image
-                      src={product.images[0]}
+                      src={getValidImageUrl(product.images)}
                       alt=""
                       className="h-full w-full object-cover"
                       width={40}
@@ -414,7 +415,7 @@ export default function OverviewPage() {
                     </div>
                   </td>
                   <td className="px-4 py-3 font-medium">
-                    ৳{order.totalAmount.toLocaleString()}
+                    ${order.totalAmount.toLocaleString()}
                   </td>
                   <td className="px-4 py-3">
                     <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-xs font-medium capitalize text-muted-foreground">

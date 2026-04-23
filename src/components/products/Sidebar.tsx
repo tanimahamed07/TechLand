@@ -16,6 +16,7 @@ interface SidebarProps {
   selectedBrand: string | null | undefined;
   updateUrlParams: (updates: UrlParamUpdates) => void;
   clearFilters: () => void;
+  isLoading?: boolean;
 }
 
 const Sidebar = ({
@@ -25,6 +26,7 @@ const Sidebar = ({
   selectedBrand,
   updateUrlParams,
   clearFilters,
+  isLoading = false,
 }: SidebarProps) => {
   const searchParams = useSearchParams();
   const [priceMin, setPriceMin] = useState(searchParams.get("priceMin") || "");
@@ -79,6 +81,7 @@ const Sidebar = ({
                 <Checkbox
                   id="all-categories"
                   checked={!selectedCategory}
+                  disabled={isLoading}
                   onCheckedChange={() =>
                     updateUrlParams({
                       category: null,
@@ -89,7 +92,9 @@ const Sidebar = ({
                 />
                 <Label
                   htmlFor="all-categories"
-                  className="cursor-pointer text-sm font-normal"
+                  className={`cursor-pointer text-sm font-normal ${
+                    isLoading ? "opacity-50" : ""
+                  }`}
                 >
                   All Categories
                 </Label>
@@ -107,6 +112,7 @@ const Sidebar = ({
                       <Checkbox
                         id={category.slug}
                         checked={isParentSelected}
+                        disabled={isLoading}
                         onCheckedChange={() =>
                           updateUrlParams({
                             category: category.slug,
@@ -120,7 +126,7 @@ const Sidebar = ({
                         htmlFor={category.slug}
                         className={`cursor-pointer text-sm ${
                           showAsActive ? "font-medium" : "font-normal"
-                        }`}
+                        } ${isLoading ? "opacity-50" : ""}`}
                       >
                         {category.name}
                       </Label>
@@ -135,6 +141,7 @@ const Sidebar = ({
                             <Checkbox
                               id={sub.slug}
                               checked={selectedCategory === sub.slug}
+                              disabled={isLoading}
                               onCheckedChange={() =>
                                 updateUrlParams({
                                   category: sub.slug,
@@ -146,7 +153,9 @@ const Sidebar = ({
                             />
                             <Label
                               htmlFor={sub.slug}
-                              className="cursor-pointer text-sm font-normal text-muted-foreground"
+                              className={`cursor-pointer text-sm font-normal text-muted-foreground ${
+                                isLoading ? "opacity-50" : ""
+                              }`}
                             >
                               {sub.name}
                             </Label>
@@ -169,13 +178,16 @@ const Sidebar = ({
                 <Checkbox
                   id="all-brands"
                   checked={!selectedBrand}
+                  disabled={isLoading}
                   onCheckedChange={() =>
                     updateUrlParams({ brand: null, search: null })
                   }
                 />
                 <Label
                   htmlFor="all-brands"
-                  className="cursor-pointer text-sm font-normal"
+                  className={`cursor-pointer text-sm font-normal ${
+                    isLoading ? "opacity-50" : ""
+                  }`}
                 >
                   All Brands
                 </Label>
@@ -194,13 +206,16 @@ const Sidebar = ({
                       <Checkbox
                         id={`brand-${brand}`}
                         checked={selectedBrand === brand}
+                        disabled={isLoading}
                         onCheckedChange={() =>
                           updateUrlParams({ brand, search: null })
                         }
                       />
                       <Label
                         htmlFor={`brand-${brand}`}
-                        className="cursor-pointer text-sm font-normal"
+                        className={`cursor-pointer text-sm font-normal ${
+                          isLoading ? "opacity-50" : ""
+                        }`}
                       >
                         {brand}
                       </Label>
@@ -240,8 +255,9 @@ const Sidebar = ({
                 size="sm"
                 className="w-full"
                 variant="secondary"
+                disabled={isLoading}
               >
-                Apply
+                {isLoading ? "Applying..." : "Apply"}
               </Button>
             </div>
           </div>
@@ -260,10 +276,13 @@ const Sidebar = ({
                   <Checkbox
                     id={`rating-${rating}`}
                     checked={selectedRating === String(rating)}
+                    disabled={isLoading}
                   />
                   <Label
                     htmlFor={`rating-${rating}`}
-                    className="cursor-pointer text-sm font-normal flex items-center gap-1"
+                    className={`cursor-pointer text-sm font-normal flex items-center gap-1 ${
+                      isLoading ? "opacity-50" : ""
+                    }`}
                   >
                     {rating}
                     <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />

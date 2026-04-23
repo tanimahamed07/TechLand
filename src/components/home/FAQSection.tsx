@@ -1,8 +1,5 @@
 import React from "react";
-import { 
-  HelpCircle, 
-  MessageCircleQuestion 
-} from "lucide-react";
+import { HelpCircle, MessageCircleQuestion } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -13,23 +10,28 @@ import {
 const faqs = [
   {
     question: "Are the products at TechLand genuine?",
-    answer: "Absolutely! We only source products directly from official brand distributors or the brands themselves. Every product comes with a 100% authenticity guarantee.",
+    answer:
+      "Absolutely! We only source products directly from official brand distributors or the brands themselves. Every product comes with a 100% authenticity guarantee.",
   },
   {
     question: "What is your delivery timeline?",
-    answer: "Inside Dhaka, we deliver within 24 hours. For outside Dhaka, it usually takes 2-3 business days through our premium courier partners.",
+    answer:
+      "Inside Dhaka, we deliver within 24 hours. For outside Dhaka, it usually takes 2-3 business days through our premium courier partners.",
   },
   {
     question: "Do you provide official warranty?",
-    answer: "Yes, all our electronic products come with brand-authorized official warranties. You can claim the warranty at any of the brand's official service centers.",
+    answer:
+      "Yes, all our electronic products come with brand-authorized official warranties. You can claim the warranty at any of the brand's official service centers.",
   },
   {
     question: "What is your return policy?",
-    answer: "We have a 7-day easy return policy for manufacturing defects. The product must be in its original packaging and condition.",
+    answer:
+      "We have a 7-day easy return policy for manufacturing defects. The product must be in its original packaging and condition.",
   },
   {
     question: "Can I pay with EMI?",
-    answer: "Yes, we offer EMI facilities on major credit cards for orders above 5,000 BDT. You can choose your preferred tenure during checkout.",
+    answer:
+      "Yes, we offer EMI facilities on major credit cards for orders above $50. You can choose your preferred tenure during checkout.",
   },
 ];
 
@@ -37,7 +39,6 @@ export default function FAQSection() {
   return (
     <section className="py-20 bg-background transition-colors duration-300">
       <div className="container mx-auto px-6 lg:px-8">
-        
         {/* Header - WhyTechLand এর সাথে মিল রাখা হয়েছে */}
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4">
@@ -48,7 +49,8 @@ export default function FAQSection() {
             Still Have <span className="text-primary">Questions?</span>
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto text-sm">
-            Everything you need to know about our services, products, and policies in one place.
+            Everything you need to know about our services, products, and
+            policies in one place.
           </p>
         </div>
 
@@ -56,8 +58,8 @@ export default function FAQSection() {
         <div className="max-w-3xl mx-auto">
           <Accordion type="single" collapsible className="w-full space-y-4">
             {faqs.map((faq, index) => (
-              <AccordionItem 
-                key={index} 
+              <AccordionItem
+                key={index}
                 value={`item-${index}`}
                 className="border border-border bg-card px-6 rounded-2xl transition-all hover:border-primary/30 shadow-sm"
               >

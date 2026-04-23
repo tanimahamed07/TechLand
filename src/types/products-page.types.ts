@@ -31,4 +31,5 @@ export interface UrlParamUpdates {
   priceMax?: string | null;
   rating?: string | null;
   search?: string | null;
+  sortBy?: string | null;
 }

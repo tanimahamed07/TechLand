@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
+import { getValidImageUrl } from "@/utils/imageUtils";
 
 interface ProductImageGalleryProps {
   images: string[];
@@ -33,10 +34,7 @@ export function ProductImageGallery({
           </Badge>
         )}
         <Image
-          src={
-            images[selectedImage] ||
-            "https://placehold.co/600x600/e2e8f0/64748b?text=No+Image"
-          }
+          src={getValidImageUrl([images[selectedImage]])}
           alt={title}
           width={600}
           height={600}
@@ -61,7 +59,7 @@ export function ProductImageGallery({
               }`}
             >
               <Image
-                src={image}
+                src={getValidImageUrl([image])}
                 alt={`${title} - ${index + 1}`}
                 width={150}
                 height={150}
