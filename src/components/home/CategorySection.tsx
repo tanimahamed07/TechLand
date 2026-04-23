@@ -7,6 +7,7 @@ import {
   Watch,
   Tv,
 } from "lucide-react";
+import { Button } from "../ui/button";
 
 const categories = [
   {
@@ -81,8 +82,7 @@ export default function CategorySection() {
             Browse Categories
           </div>
           <h2 className="text-3xl lg:text-4xl font-black text-base-content mb-3">
-            Shop by{" "}
-            <span className="text-primary">Category</span>
+            Shop by <span className="text-primary">Category</span>
           </h2>
           <p className="text-base-content/60 max-w-xl mx-auto">
             Explore our wide range of product categories and find exactly what
@@ -127,9 +127,21 @@ export default function CategorySection() {
 
                 {/* Arrow on hover */}
                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <div className={`w-5 h-5 rounded-full ${cat.iconBg} flex items-center justify-center`}>
-                    <svg className={`w-3 h-3 ${cat.iconColor}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                  <div
+                    className={`w-5 h-5 rounded-full ${cat.iconBg} flex items-center justify-center`}
+                  >
+                    <svg
+                      className={`w-3 h-3 ${cat.iconColor}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2.5}
+                        d="M9 5l7 7-7 7"
+                      />
                     </svg>
                   </div>
                 </div>
@@ -139,16 +151,34 @@ export default function CategorySection() {
         </div>
 
         {/* View All */}
-        <div className="text-center mt-8">
-          <Link
-            href="/products"
-            className="btn btn-ghost btn-sm border border-base-300 hover:border-primary hover:text-primary gap-2"
+        <div className="flex justify-center mt-10">
+          {" "}
+          {/* প্যারেন্ট ডিভ দিয়ে সেন্টার করা হয়েছে */}
+          <Button
+            asChild
+            variant="outline"
+            className="w-fit px-6 h-10 border-slate-200 hover:border-primary hover:text-primary transition-all rounded-full"
           >
-            View All Products
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
+            <Link
+              href="/products"
+              className="flex items-center gap-2 font-bold text-xs uppercase tracking-wider"
+            >
+              View All Products
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </Link>
+          </Button>
         </div>
       </div>
     </section>
