@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Send, Bot, X } from "lucide-react"; 
+import { Send, Bot, X } from "lucide-react";
 import { chatWithAssistant } from "@/service/ai.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,7 +65,7 @@ export default function ChatBox({ onClose }: { onClose?: () => void }) {
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="p-1 hover:bg-white/20 rounded-md transition-colors"
+          className="p-1 hover:bg-muted/20 rounded-md transition-colors"
           aria-label="Close chat"
         >
           <X className="w-4 h-4" />

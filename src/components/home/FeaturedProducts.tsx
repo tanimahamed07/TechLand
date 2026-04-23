@@ -34,9 +34,14 @@ export default function FeaturedProducts() {
       try {
         setIsLoading(true);
         setIsError(false);
+        console.log("Fetching featured products...");
         const result = await getFeaturedProducts();
+        console.log("Featured products result:", result);
+        console.log("Featured products data:", result.data);
+        console.log("Featured products count:", result.data?.length || 0);
         setProducts(result.data || []);
-      } catch {
+      } catch (error) {
+        console.error("Featured products error:", error);
         setIsError(true);
       } finally {
         setIsLoading(false);
@@ -85,15 +90,18 @@ export default function FeaturedProducts() {
           </div>
         )}
 
-        {/* Product Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
+        {/* Product Grid - 10 products in 2 rows */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
           {isLoading
-            ? Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} />)
-            : products
-                .slice(0, 10)
-                .map((product) => (
-                  <ProductCard key={product._id} product={product} />
-                ))}
+            ? Array.from({ length: 10 }).map((_, i) => <SkeletonCard key={i} />)
+            : products.slice(0, 10).map((product, index) => (
+                <ProductCard
+                  key={product._id}
+                  product={product}
+                  // First 5 products eager loading for LCP
+                  loading={index < 5 ? "eager" : "lazy"}
+                />
+              ))}
         </div>
 
         {/* Empty state */}
@@ -101,11 +109,18 @@ export default function FeaturedProducts() {
           <div className="text-center py-16">
             <div className="text-6xl mb-4">📦</div>
             <h3 className="text-xl font-bold text-base-content mb-2">
-              No featured products yet
+              No featured products found
             </h3>
             <p className="text-base-content/60 mb-6">
-              Check back soon for our curated picks.
+              Make sure products are marked as featured in admin panel.
             </p>
+            <div className="text-xs text-base-content/40 bg-base-200 rounded p-4 max-w-md mx-auto">
+              <p>Debug: Fetched {products.length} featured products</p>
+              <p>
+                API URL:{" "}
+                {process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001"}
+              </p>
+            </div>
           </div>
         )}
 

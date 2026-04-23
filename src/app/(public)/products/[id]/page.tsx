@@ -31,14 +31,46 @@ export default async function ProductDetailsPage({
   let relatedProducts: Product[] = [];
   if (product.category?.slug) {
     try {
+      // First try: Same category products
       const relatedData = await getAllProducts({
         category: product.category.slug,
-        limit: 5,
+        limit: 8,
       });
-      // Shudhu current product bad diye baki products
-      relatedProducts = relatedData.data
-        .filter((p) => p._id !== product._id)
-        .slice(0, 5);
+
+      // Filter out current product
+      const sameCategoryProducts = relatedData.data.filter(
+        (p) => p._id !== product._id,
+      );
+
+      // If we have enough products from same category, use them
+      if (sameCategoryProducts.length >= 4) {
+        relatedProducts = sameCategoryProducts.slice(0, 4);
+      } else {
+        // Not enough in same category, add same brand products
+        relatedProducts = [...sameCategoryProducts];
+
+        if (product.brand && relatedProducts.length < 4) {
+          try {
+            const brandData = await getAllProducts({
+              brand: product.brand,
+              limit: 8,
+            });
+
+            const sameBrandProducts = brandData.data.filter(
+              (p) =>
+                p._id !== product._id &&
+                !relatedProducts.some((rp) => rp._id === p._id),
+            );
+
+            relatedProducts = [...relatedProducts, ...sameBrandProducts].slice(
+              0,
+              4,
+            );
+          } catch (error) {
+            console.error("Failed to fetch brand products:", error);
+          }
+        }
+      }
     } catch (error) {
       console.error("Failed to fetch related products:", error);
     }
@@ -100,8 +132,7 @@ export default async function ProductDetailsPage({
 
         {/* Related Products */}
 
-          <RelatedProducts products={relatedProducts} />
-
+        <RelatedProducts products={relatedProducts} />
       </div>
     </div>
   );

@@ -80,7 +80,7 @@ export default function ProductDetailsContent({
           {/* Image Gallery */}
           <div className="space-y-4">
             {/* Main Image */}
-            <div className="relative aspect-square rounded-lg overflow-hidden border bg-white">
+            <div className="relative aspect-square rounded-lg overflow-hidden border bg-card">
               <Image
                 src={product.images[selectedImage] || product.images[0]}
                 alt={product.title}
@@ -141,7 +141,7 @@ export default function ProductDetailsContent({
                     className={`h-5 w-5 ${
                       i < Math.floor(product.rating)
                         ? "fill-yellow-400 text-yellow-400"
-                        : "text-gray-300"
+                        : "text-muted-foreground"
                     }`}
                   />
                 ))}

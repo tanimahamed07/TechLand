@@ -4,14 +4,9 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  Minus,
-  Plus,
-  ShoppingBag,
-  ShoppingCart,
-  Trash2,
-} from "lucide-react";
+import { Minus, Plus, ShoppingBag, ShoppingCart, Trash2 } from "lucide-react";
 import { useSession } from "next-auth/react";
+import toast from "react-hot-toast";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -64,7 +59,20 @@ export default function CartSidebar({
       }
     };
 
-    fetchCart();
+    // Immediate fetch when sidebar opens
+    if (isOpen && session?.user) {
+      fetchCart();
+    }
+
+    // Listen for cart updates from other components
+    const handleCartUpdate = () => {
+      if (isOpen && session?.user) {
+        fetchCart();
+      }
+    };
+
+    window.addEventListener("cartUpdated", handleCartUpdate);
+    return () => window.removeEventListener("cartUpdated", handleCartUpdate);
   }, [session, isOpen, onCartUpdate]);
 
   // Quantity update করা
@@ -79,26 +87,60 @@ export default function CartSidebar({
         0,
       );
       onCartUpdate?.(itemCount);
+      toast.success("Cart updated");
     } catch (error) {
       console.error("Failed to update quantity:", error);
+      toast.error("Failed to update cart");
     }
   };
 
-  // Item remove করা
-  const handleRemoveItem = async (itemId: string) => {
-    try {
-      const updatedCart = await removeCartItem(itemId);
-      setCart(updatedCart);
+  // Item remove করা with confirmation
+  const handleRemoveItem = async (itemId: string, productTitle: string) => {
+    // Confirmation toast with undo option
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-2">
+          <p className="font-medium">Remove from cart?</p>
+          <p className="text-sm text-muted-foreground line-clamp-1">
+            {productTitle}
+          </p>
+          <div className="flex gap-2 mt-1">
+            <button
+              onClick={async () => {
+                toast.dismiss(t.id);
+                try {
+                  const updatedCart = await removeCartItem(itemId);
+                  setCart(updatedCart);
 
-      // Update cart count
-      const itemCount = updatedCart.items.reduce(
-        (sum, item) => sum + item.quantity,
-        0,
-      );
-      onCartUpdate?.(itemCount);
-    } catch (error) {
-      console.error("Failed to remove item:", error);
-    }
+                  // Update cart count
+                  const itemCount = updatedCart.items.reduce(
+                    (sum, item) => sum + item.quantity,
+                    0,
+                  );
+                  onCartUpdate?.(itemCount);
+                  toast.success("Item removed from cart");
+                } catch (error) {
+                  console.error("Failed to remove item:", error);
+                  toast.error("Failed to remove item");
+                }
+              }}
+              className="rounded bg-destructive px-3 py-1.5 text-xs font-medium text-destructive-foreground hover:bg-destructive/90"
+            >
+              Remove
+            </button>
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="rounded bg-muted px-3 py-1.5 text-xs font-medium hover:bg-muted/80"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        duration: 5000,
+      },
+    );
   };
 
   // Checkout এ যাওয়া
@@ -141,8 +183,30 @@ export default function CartSidebar({
         {/* Body */}
         <div className="flex-1 overflow-y-auto">
           {loading ? (
-            <div className="flex h-full items-center justify-center">
-              <span className="loading loading-spinner loading-lg text-primary" />
+            <div className="flex flex-col px-6">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="border-b py-6">
+                  <div className="flex gap-4">
+                    {/* Image skeleton */}
+                    <div className="h-20 w-20 shrink-0 animate-pulse rounded-md bg-gray-200 dark:bg-gray-700" />
+
+                    {/* Info skeleton */}
+                    <div className="flex flex-1 flex-col justify-between">
+                      <div className="space-y-2">
+                        <div className="h-4 w-3/4 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                        <div className="h-3 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                        <div className="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                      </div>
+
+                      {/* Controls skeleton */}
+                      <div className="flex items-center justify-between">
+                        <div className="h-8 w-24 animate-pulse rounded-md bg-gray-200 dark:bg-gray-700" />
+                        <div className="h-8 w-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : !session?.user ? (
             <div className="flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
@@ -191,8 +255,9 @@ export default function CartSidebar({
                           "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&q=80"
                         }
                         alt={item.productId?.title || "Product"}
-                        fill
-                        className="object-cover"
+                        width={80}
+                        height={80}
+                        className="object-cover w-full h-full"
                         unoptimized
                       />
                     </Link>
@@ -224,22 +289,12 @@ export default function CartSidebar({
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 rounded-none"
-                            onClick={() => {
-                              if (item.quantity <= 1) {
-                                handleRemoveItem(item._id);
-                              } else {
-                                handleUpdateQuantity(
-                                  item._id,
-                                  item.quantity - 1,
-                                );
-                              }
-                            }}
+                            disabled={item.quantity <= 1}
+                            onClick={() =>
+                              handleUpdateQuantity(item._id, item.quantity - 1)
+                            }
                           >
-                            {item.quantity <= 1 ? (
-                              <Trash2 className="h-3 w-3 text-destructive" />
-                            ) : (
-                              <Minus className="h-3 w-3" />
-                            )}
+                            <Minus className="h-3 w-3" />
                           </Button>
                           <span className="w-8 text-center text-xs font-medium">
                             {item.quantity}
@@ -262,7 +317,12 @@ export default function CartSidebar({
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          onClick={() => handleRemoveItem(item._id)}
+                          onClick={() =>
+                            handleRemoveItem(
+                              item._id,
+                              item.productId?.title || "Product",
+                            )
+                          }
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

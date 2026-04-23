@@ -82,11 +82,11 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#f4f7fe] px-4 py-10 transition-colors duration-300">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10 transition-colors duration-300">
       <div className="w-full max-w-[1100px] overflow-hidden rounded-3xl bg-card shadow-2xl transition-all duration-300">
         <div className="flex flex-col md:flex-row">
           {/* Left Side */}
-          <div className="relative hidden flex-1 items-center justify-center p-10 md:flex md:flex-col bg-gradient-to-br from-[#e0e8f9] to-[#f4f7fe]">
+          <div className="relative hidden flex-1 items-center justify-center p-10 md:flex md:flex-col bg-gradient-to-br from-muted/50 to-background">
             <div className="relative z-10 space-y-4 text-center">
               <div className="flex items-center justify-center gap-2 mb-6">
                 <Link
@@ -163,7 +163,7 @@ const LoginForm = () => {
               {/* Google Sign-In Button */}
               <Button
                 variant="outline"
-                className="w-full h-12 rounded-xl border-border bg-white hover:bg-gray-50 text-gray-700 font-semibold shadow-sm transition-all duration-200 hover:shadow-md active:scale-[0.98]"
+                className="w-full h-12 rounded-xl border-border bg-card hover:bg-muted text-foreground font-semibold shadow-sm transition-all duration-200 hover:shadow-md active:scale-[0.98]"
                 onClick={handleGoogleSignIn}
                 disabled={isGoogleLoading}
               >

@@ -72,6 +72,7 @@ export default function ProductsContent({
     priceMin?: string | null;
     priceMax?: string | null;
     rating?: string | null;
+    search?: string | null;
   }) => {
     const params = new URLSearchParams(searchParams.toString());
 
@@ -89,6 +90,19 @@ export default function ProductsContent({
     router.push("/products");
     setSearchQuery("");
     setSortBy("newest");
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+
+    // If search is cleared, immediately remove search param from URL
+    if (value.trim() === "" && searchParam) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("search");
+      params.set("page", "1");
+      router.push(`/products?${params.toString()}`);
+    }
   };
 
   const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -139,7 +153,7 @@ export default function ProductsContent({
                 type="search"
                 placeholder="Search products..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={handleSearchChange}
                 className="w-full"
               />
             </form>
@@ -200,6 +214,21 @@ export default function ProductsContent({
 
               {/* Badges (Visible on all screens) */}
               <div className="hidden sm:flex flex-wrap items-center gap-2">
+                {searchParam && (
+                  <Badge variant="secondary" className="gap-1">
+                    Search: {searchParam}
+                    <button
+                      onClick={() => {
+                        setSearchQuery("");
+                        updateUrlParams({ search: null });
+                      }}
+                      className="ml-1 hover:bg-muted rounded-full p-0.5"
+                      type="button"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                )}
                 {selectedCategory && (
                   <Badge variant="secondary" className="gap-1">
                     Category: {selectedCategory}

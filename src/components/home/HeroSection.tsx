@@ -71,7 +71,7 @@ const slides = [
 
 export default function HeroSection() {
   return (
-    <section className="relative overflow-hidden rounded-[2rem] bg-background">
+    <section className="relative overflow-hidden bg-background">
       <Swiper
         modules={[Autoplay, Pagination, Navigation]}
         autoplay={{ delay: 5000, disableOnInteraction: false }}

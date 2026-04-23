@@ -38,10 +38,12 @@ export function ProductImageGallery({
             "https://placehold.co/600x600/e2e8f0/64748b?text=No+Image"
           }
           alt={title}
-          fill
+          width={600}
+          height={600}
           sizes="(max-width: 1024px) 100vw, 50vw"
-          className="object-cover"
+          className="object-cover w-full h-full"
           priority
+          loading="eager"
         />
       </div>
 
@@ -61,9 +63,10 @@ export function ProductImageGallery({
               <Image
                 src={image}
                 alt={`${title} - ${index + 1}`}
-                fill
+                width={150}
+                height={150}
                 sizes="(max-width: 1024px) 25vw, 12.5vw"
-                className="object-cover"
+                className="object-cover w-full h-full"
               />
             </button>
           ))}

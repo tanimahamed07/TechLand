@@ -190,8 +190,9 @@ export default function AdminProductsPage() {
                             "https://placehold.co/48x48/e2e8f0/64748b?text=?"
                           }
                           alt={product.title}
-                          fill
-                          className="object-cover"
+                          width={48}
+                          height={48}
+                          className="object-cover w-full h-full"
                           sizes="48px"
                           unoptimized
                         />

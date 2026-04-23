@@ -92,7 +92,7 @@ export const ProductCard = ({
           className={`absolute right-2 top-2 z-10 rounded-full p-1.5 shadow-sm transition-all ${
             wishlisted
               ? "bg-rose-500 text-white"
-              : "bg-white/80 text-gray-600 hover:bg-white hover:text-rose-500"
+              : "bg-card/80 text-muted-foreground hover:bg-card hover:text-rose-500"
           } disabled:opacity-70`}
         >
           <Heart className={`h-3.5 w-3.5 ${wishlisted ? "fill-white" : ""}`} />
@@ -104,9 +104,11 @@ export const ProductCard = ({
             "https://placehold.co/400x300/e2e8f0/64748b?text=No+Image"
           }
           alt={product.title}
-          fill
+          width={400}
+          height={300}
           sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 33vw, 25vw"
-          className="object-cover transition-transform group-hover:scale-105"
+          className="object-cover transition-transform group-hover:scale-105 w-full h-full"
+          loading="eager"
         />
       </div>
 
@@ -129,7 +131,7 @@ export const ProductCard = ({
                   className={
                     i < Math.floor(product.rating)
                       ? "text-yellow-400"
-                      : "text-gray-300"
+                      : "text-muted-foreground"
                   }
                 >
                   ★

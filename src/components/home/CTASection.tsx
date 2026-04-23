@@ -6,9 +6,9 @@ import { motion } from "framer-motion";
 
 export default function CTASection() {
   return (
-    <section className="py-12 px-6 lg:px-8">
-      <div className="container mx-auto">
-        <motion.div 
+    <section className="py-8">
+      <div className="max-w-7xl px-4 mx-auto">
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -24,15 +24,16 @@ export default function CTASection() {
               <Sparkles className="w-3.5 h-3.5" />
               Upgrade Your Setup Today
             </div>
-            
+
             <h2 className="text-3xl md:text-5xl font-black mb-6 leading-tight">
-              Ready to Experience the <br /> 
+              Ready to Experience the <br />
               <span className="text-white/80">Next Level of Tech?</span>
             </h2>
-            
+
             <p className="text-primary-foreground/80 text-sm md:text-base mb-10 max-w-lg mx-auto leading-relaxed">
-              Join thousands of tech enthusiasts. Get exclusive access to the latest gadgets, 
-              members-only discounts, and lightning-fast delivery.
+              Join thousands of tech enthusiasts. Get exclusive access to the
+              latest gadgets, members-only discounts, and lightning-fast
+              delivery.
             </p>
 
             {/* Buttons */}
@@ -45,7 +46,7 @@ export default function CTASection() {
                 <ShoppingCart className="w-4 h-4" />
                 Shop Now
               </motion.button>
-              
+
               <motion.button
                 whileHover={{ x: 5 }}
                 className="flex items-center gap-2 text-white font-bold text-sm uppercase tracking-widest px-6 py-4 transition-all"
@@ -57,7 +58,7 @@ export default function CTASection() {
           </div>
 
           {/* Floating Icon Accents */}
-          <motion.div 
+          <motion.div
             animate={{ y: [0, -10, 0] }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             className="absolute top-12 right-12 hidden lg:block opacity-20"

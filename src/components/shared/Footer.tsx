@@ -224,14 +224,16 @@ export default function Footer() {
               alt="PayPal"
               width={60}
               height={20}
-              className="h-4 w-auto"
+              className="h-4"
+              style={{ width: "auto", height: "16px" }}
             />
             <Image
               src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg"
               alt="Mastercard"
               width={40}
               height={30}
-              className="h-6 w-auto"
+              className="h-6"
+              style={{ width: "auto", height: "24px" }}
             />
             <Image
               src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg"

@@ -333,8 +333,9 @@ export default function CheckoutPage() {
                           "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100&q=80"
                         }
                         alt={item.productId?.title || "Product"}
-                        fill
-                        className="object-cover"
+                        width={48}
+                        height={48}
+                        className="object-cover w-full h-full"
                         sizes="48px"
                         unoptimized
                       />

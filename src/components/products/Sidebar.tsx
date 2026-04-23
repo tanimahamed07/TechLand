@@ -21,6 +21,7 @@ interface SidebarProps {
     priceMin?: string | null;
     priceMax?: string | null;
     rating?: string | null;
+    search?: string | null;
   }) => void;
   clearFilters: () => void;
 }
@@ -37,17 +38,20 @@ const Sidebar = ({
   const [priceMin, setPriceMin] = useState(searchParams.get("priceMin") || "");
   const [priceMax, setPriceMax] = useState(searchParams.get("priceMax") || "");
   const selectedRating = searchParams.get("rating");
+  const searchParam = searchParams.get("search");
 
   const handlePriceFilter = () => {
     updateUrlParams({
       priceMin: priceMin || null,
       priceMax: priceMax || null,
+      search: null, // Clear search when applying price filter
     });
   };
 
   const handleRatingFilter = (rating: number) => {
     updateUrlParams({
       rating: selectedRating === String(rating) ? null : String(rating),
+      search: null, // Clear search when applying rating filter
     });
   };
 
@@ -60,7 +64,8 @@ const Sidebar = ({
             selectedBrand ||
             priceMin ||
             priceMax ||
-            selectedRating) && (
+            selectedRating ||
+            searchParam) && (
             <Button
               variant="ghost"
               size="sm"
@@ -87,6 +92,7 @@ const Sidebar = ({
                     updateUrlParams({
                       category: null,
                       subcategory: null,
+                      search: null, // Clear search when selecting all categories
                     })
                   }
                 />
@@ -116,6 +122,7 @@ const Sidebar = ({
                             category: category.slug,
                             subcategory: null,
                             brand: null, // Clear brand when category changes
+                            search: null, // Clear search when category changes
                           })
                         }
                       />
@@ -143,6 +150,7 @@ const Sidebar = ({
                                   category: sub.slug,
                                   subcategory: null,
                                   brand: null, // Clear brand when category changes
+                                  search: null, // Clear search when category changes
                                 })
                               }
                             />
@@ -172,7 +180,9 @@ const Sidebar = ({
                 <Checkbox
                   id="all-brands"
                   checked={!selectedBrand}
-                  onCheckedChange={() => updateUrlParams({ brand: null })}
+                  onCheckedChange={() =>
+                    updateUrlParams({ brand: null, search: null })
+                  }
                 />
                 <Label
                   htmlFor="all-brands"
@@ -196,7 +206,9 @@ const Sidebar = ({
                       <Checkbox
                         id={`brand-${brand}`}
                         checked={selectedBrand === brand}
-                        onCheckedChange={() => updateUrlParams({ brand })}
+                        onCheckedChange={() =>
+                          updateUrlParams({ brand, search: null })
+                        }
                       />
                       <Label
                         htmlFor={`brand-${brand}`}
