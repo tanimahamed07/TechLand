@@ -65,7 +65,7 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user, trigger, session, account }) {
-      // Initial login
+      // Credentials login
       if (user) {
         token.id = user.id;
         token.role = user.role;
@@ -73,11 +73,32 @@ export const authOptions: NextAuthOptions = {
         token.name = user.name;
         token.picture = user.image;
       }
-      // Google login er jonno - account theke access token nao
-      if (account?.provider === "google") {
-        token.accessToken = account.access_token ?? "";
-        token.role = "user"; // Google login e default role "user"
+
+      // Google login er jonno - backend e oauth call kore backend JWT nao
+      if (account?.provider === "google" && token.email) {
+        try {
+          const res = await fetch(`${API_URL}/api/v1/auth/oauth`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: token.email,
+              name: token.name,
+              avatar: token.picture,
+              provider: "google",
+            }),
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            token.id = data.data.user._id;
+            token.role = data.data.user.role ?? "user";
+            token.accessToken = data.data.token; // backend JWT — Google token na
+            token.picture = data.data.user.avatar ?? token.picture;
+          }
+        } catch (err) {
+          console.error("OAuth backend sync failed:", err);
+        }
       }
+
       // Session update() call theke
       if (trigger === "update" && session?.user) {
         token.name = session.user.name;
