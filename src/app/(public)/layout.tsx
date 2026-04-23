@@ -1,12 +1,11 @@
 "use client";
 
 import ChatBox from "@/components/ai/ChatBox";
-import { Navbar } from "@/components/Navbar";
+import { Navbar } from "@/components/shared/Navbar";
 import React, { useState } from "react";
 import { MessageCircle } from "lucide-react"; // চ্যাট আইকনের জন্য
 import { Button } from "@/components/ui/button";
-import Footer from "@/components/Footer";
-
+import Footer from "@/components/shared/Footer";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const [isOpen, setIsOpen] = useState(false); // চ্যাটবক্স খোলা না বন্ধ তা ট্র্যাক করবে

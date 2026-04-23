@@ -10,7 +10,6 @@ import {
   ShoppingBag,
   ShoppingCart,
   Trash2,
-  X,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 

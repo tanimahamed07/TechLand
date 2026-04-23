@@ -25,12 +25,12 @@ import {
   DropdownMenuTrigger,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { ThemeToggle } from "./theme-toggle";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { ThemeToggle } from "../theme-toggle";
 import { getCategoryTree } from "@/service/category.service";
 import { CategoryTree } from "@/types/category.types";
 import { getCart } from "@/service/cart.service";
-import CartSidebar from "./CartSidebar";
+import CartSidebar from "../CartSidebar";
 import {
   Sheet,
   SheetContent,
