@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -7,22 +7,14 @@ import { Checkbox } from "../ui/checkbox";
 import { Product } from "@/types/product.types";
 import { useSearchParams } from "next/navigation";
 import { Star } from "lucide-react";
-import { CategoryTree } from "./ProductsContent";
+import { CategoryTree, UrlParamUpdates } from "@/types/products-page.types";
 
 interface SidebarProps {
   categories: CategoryTree[];
   products: Product[];
   selectedCategory: string | null | undefined;
   selectedBrand: string | null | undefined;
-  updateUrlParams: (updates: {
-    category?: string | null;
-    subcategory?: string | null;
-    brand?: string | null;
-    priceMin?: string | null;
-    priceMax?: string | null;
-    rating?: string | null;
-    search?: string | null;
-  }) => void;
+  updateUrlParams: (updates: UrlParamUpdates) => void;
   clearFilters: () => void;
 }
 
@@ -44,14 +36,14 @@ const Sidebar = ({
     updateUrlParams({
       priceMin: priceMin || null,
       priceMax: priceMax || null,
-      search: null, // Clear search when applying price filter
+      search: null,
     });
   };
 
   const handleRatingFilter = (rating: number) => {
     updateUrlParams({
       rating: selectedRating === String(rating) ? null : String(rating),
-      search: null, // Clear search when applying rating filter
+      search: null,
     });
   };
 
@@ -78,7 +70,6 @@ const Sidebar = ({
         </div>
 
         <div className="space-y-6">
-          {/* Category Filter */}
           <div>
             <h4 className="mb-3 text-sm font-medium uppercase text-muted-foreground">
               Category
@@ -92,7 +83,7 @@ const Sidebar = ({
                     updateUrlParams({
                       category: null,
                       subcategory: null,
-                      search: null, // Clear search when selecting all categories
+                      search: null,
                     })
                   }
                 />
@@ -104,7 +95,6 @@ const Sidebar = ({
                 </Label>
               </div>
               {categories.map((category) => {
-                // Check if this parent category is selected OR any of its children is selected
                 const isParentSelected = selectedCategory === category.slug;
                 const isAnyChildSelected = category.children?.some(
                   (sub) => selectedCategory === sub.slug,
@@ -121,8 +111,8 @@ const Sidebar = ({
                           updateUrlParams({
                             category: category.slug,
                             subcategory: null,
-                            brand: null, // Clear brand when category changes
-                            search: null, // Clear search when category changes
+                            brand: null,
+                            search: null,
                           })
                         }
                       />
@@ -149,8 +139,8 @@ const Sidebar = ({
                                 updateUrlParams({
                                   category: sub.slug,
                                   subcategory: null,
-                                  brand: null, // Clear brand when category changes
-                                  search: null, // Clear search when category changes
+                                  brand: null,
+                                  search: null,
                                 })
                               }
                             />
@@ -170,7 +160,6 @@ const Sidebar = ({
             </div>
           </div>
 
-          {/* Brand Filter */}
           <div>
             <h4 className="mb-3 text-sm font-medium uppercase text-muted-foreground">
               Brand
@@ -191,7 +180,6 @@ const Sidebar = ({
                   All Brands
                 </Label>
               </div>
-              {/* Server থেকে আসা filtered products এর unique brands */}
               {products.length > 0 ? (
                 Array.from(
                   new Set(
@@ -226,7 +214,6 @@ const Sidebar = ({
             </div>
           </div>
 
-          {/* Price Range Filter */}
           <div>
             <h4 className="mb-3 text-sm font-medium uppercase text-muted-foreground">
               Price Range
@@ -259,7 +246,6 @@ const Sidebar = ({
             </div>
           </div>
 
-          {/* Rating Filter */}
           <div>
             <h4 className="mb-3 text-sm font-medium uppercase text-muted-foreground">
               Minimum Rating

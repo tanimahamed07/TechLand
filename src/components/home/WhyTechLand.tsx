@@ -55,7 +55,7 @@ export default function WhyTechLand() {
             The TechLand <span className="text-primary">Difference</span>
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto text-sm">
-            We don't just sell gadgets; we provide a premium tech experience backed by trust and quality.
+            We don&apos;t just sell gadgets; we provide a premium tech experience backed by trust and quality.
           </p>
         </div>
 

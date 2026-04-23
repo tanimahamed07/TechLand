@@ -101,10 +101,10 @@ const Testimonials = () => {
               spaceBetween: 24,
             },
           }}
-          className="!pb-14 !flex !items-stretch"
+          className="pb-14! flex! items-stretch!"
         >
           {testimonials.map((t, index) => (
-            <SwiperSlide key={index} className="!h-auto">
+            <SwiperSlide key={index} className="h-auto!">
               <div className="relative flex flex-col h-full p-6 rounded-2xl border border-border bg-card shadow-sm hover:border-primary/40 transition-all duration-300 hover:shadow-md group">
                 {/* Slim Quote Icon */}
                 <div className="absolute top-4 right-4 opacity-5 pointer-events-none">
@@ -123,7 +123,7 @@ const Testimonials = () => {
 
                 {/* Content - flex-1 keeps heights equal */}
                 <p className="text-muted-foreground text-[13px] leading-relaxed mb-4 italic flex-1">
-                  "{t.text}"
+                  {t.text}
                 </p>
 
                 {/* Product Tag */}

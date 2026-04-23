@@ -15,30 +15,18 @@ import {
 } from "@/components/ui/sheet";
 import { ProductCard } from "@/components/products/ProductCard";
 import { Product } from "@/types/product.types";
+import {
+  SortOption,
+  CategoryTree,
+  ProductsPageMeta,
+  UrlParamUpdates,
+} from "@/types/products-page.types";
 import Sidebar from "@/components/products/Sidebar";
-
-type SortOption = "newest" | "price-low" | "price-high" | "rating" | "popular";
-
-export interface CategoryTree {
-  _id: string;
-  name: string;
-  slug: string;
-  children: Array<{
-    _id: string;
-    name: string;
-    slug: string;
-  }>;
-}
 
 interface ProductsContentProps {
   initialProducts: Product[];
   initialCategories: CategoryTree[];
-  meta?: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
+  meta?: ProductsPageMeta;
 }
 
 export default function ProductsContent({
@@ -61,22 +49,10 @@ export default function ProductsContent({
 
   const selectedCategory = subcategoryParam || categoryParam;
   const selectedBrand = brandParam;
-
-  // Server-side filtering দিয়ে products আসছে, তাই client-side filtering এর দরকার নেই
   const products = initialProducts;
 
-  const updateUrlParams = (updates: {
-    category?: string | null;
-    subcategory?: string | null;
-    brand?: string | null;
-    priceMin?: string | null;
-    priceMax?: string | null;
-    rating?: string | null;
-    search?: string | null;
-  }) => {
+  const updateUrlParams = (updates: UrlParamUpdates) => {
     const params = new URLSearchParams(searchParams.toString());
-
-    // Reset to page 1 when filters change
     params.set("page", "1");
 
     Object.entries(updates).forEach(([key, value]) => {
@@ -96,7 +72,6 @@ export default function ProductsContent({
     const value = e.target.value;
     setSearchQuery(value);
 
-    // If search is cleared, immediately remove search param from URL
     if (value.trim() === "" && searchParam) {
       const params = new URLSearchParams(searchParams.toString());
       params.delete("search");
@@ -108,7 +83,7 @@ export default function ProductsContent({
   const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const params = new URLSearchParams(searchParams.toString());
-    params.set("page", "1"); // Reset to page 1 on search
+    params.set("page", "1");
 
     if (searchQuery.trim()) {
       params.set("search", searchQuery.trim());
@@ -122,7 +97,7 @@ export default function ProductsContent({
     setSortBy(newSort);
     const params = new URLSearchParams(searchParams.toString());
     params.set("sortBy", newSort);
-    params.set("page", "1"); // Reset to page 1 on sort change
+    params.set("page", "1");
     router.push(`/products?${params.toString()}`);
   };
 
@@ -130,14 +105,12 @@ export default function ProductsContent({
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", String(newPage));
     router.push(`/products?${params.toString()}`);
-    // Scroll to top
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto max-w-7xl px-4 py-8">
-        {/* Header Section */}
         <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-foreground">
@@ -161,7 +134,6 @@ export default function ProductsContent({
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Desktop Sidebar (Hidden on mobile) */}
           <aside className="hidden lg:block w-64 shrink-0">
             <Sidebar
               categories={initialCategories}
@@ -173,11 +145,8 @@ export default function ProductsContent({
             />
           </aside>
 
-          {/* Main Content */}
           <div className="flex-1">
-            {/* Filter & Sort Bar */}
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              {/* Mobile Filter Button */}
               <div className="flex items-center gap-2 lg:hidden">
                 <Sheet>
                   <SheetTrigger asChild>
@@ -212,7 +181,6 @@ export default function ProductsContent({
                 </p>
               </div>
 
-              {/* Badges (Visible on all screens) */}
               <div className="hidden sm:flex flex-wrap items-center gap-2">
                 {searchParam && (
                   <Badge variant="secondary" className="gap-1">
@@ -257,7 +225,6 @@ export default function ProductsContent({
                 )}
               </div>
 
-              {/* Sort Dropdown */}
               <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
                 <span className="text-sm text-muted-foreground whitespace-nowrap">
                   Sort:
@@ -278,7 +245,6 @@ export default function ProductsContent({
               </div>
             </div>
 
-            {/* Products Grid */}
             {products.length === 0 ? (
               <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg border border-dashed p-8">
                 <p className="text-muted-foreground">
@@ -296,7 +262,6 @@ export default function ProductsContent({
               </div>
             )}
 
-            {/* Stats & Pagination */}
             {products.length > 0 && meta && (
               <div className="mt-12 flex flex-col items-center gap-6">
                 <p className="text-sm text-muted-foreground">
@@ -305,10 +270,8 @@ export default function ProductsContent({
                   products
                 </p>
 
-                {/* Pagination Controls */}
                 {meta.totalPages > 1 && (
                   <div className="flex items-center gap-2">
-                    {/* Previous Button */}
                     <Button
                       variant="outline"
                       size="sm"
@@ -319,9 +282,7 @@ export default function ProductsContent({
                       Previous
                     </Button>
 
-                    {/* Page Numbers */}
                     <div className="flex items-center gap-1">
-                      {/* First Page */}
                       {meta.page > 3 && (
                         <>
                           <Button
@@ -340,7 +301,6 @@ export default function ProductsContent({
                         </>
                       )}
 
-                      {/* Pages around current page */}
                       {Array.from({ length: meta.totalPages }, (_, i) => i + 1)
                         .filter((page) => {
                           return (
@@ -363,7 +323,6 @@ export default function ProductsContent({
                           </Button>
                         ))}
 
-                      {/* Last Page */}
                       {meta.page < meta.totalPages - 2 && (
                         <>
                           {meta.page < meta.totalPages - 3 && (
@@ -387,7 +346,6 @@ export default function ProductsContent({
                       )}
                     </div>
 
-                    {/* Next Button */}
                     <Button
                       variant="outline"
                       size="sm"

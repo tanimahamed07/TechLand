@@ -86,7 +86,7 @@ export default function CategorySection() {
           </h2>
           <p className="text-base-content/60 max-w-xl mx-auto">
             Explore our wide range of product categories and find exactly what
-            you're looking for.
+            you&apos;re looking for.
           </p>
         </div>
 
@@ -101,7 +101,7 @@ export default function CategorySection() {
               <div
                 className={`
                   relative flex flex-col items-center gap-3 p-5 rounded-2xl
-                  bg-gradient-to-br ${cat.color}
+                  bg-linear-to-br ${cat.color}
                   border border-base-200 ${cat.borderColor}
                   transition-all duration-300
                   hover:-translate-y-2 hover:shadow-lg

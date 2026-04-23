@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import { 
   HelpCircle, 
@@ -80,7 +78,7 @@ export default function FAQSection() {
         <div className="mt-16 text-center">
           <div className="inline-flex flex-col md:flex-row items-center gap-4 p-4 px-8 rounded-3xl bg-secondary/50 border border-border">
             <p className="text-sm font-medium text-muted-foreground">
-              Didn't find what you were looking for?
+              Didn&apos;t find what you were looking for?
             </p>
             <button className="flex items-center gap-2 text-primary font-bold text-sm hover:underline transition-all">
               <MessageCircleQuestion className="w-4 h-4" />
