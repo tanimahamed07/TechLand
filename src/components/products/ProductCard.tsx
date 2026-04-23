@@ -77,102 +77,98 @@ export const ProductCard = ({
   };
 
   return (
-    <div>
-      <Card className="group overflow-hidden transition-shadow hover:shadow-lg">
-        <div className="relative aspect-square overflow-hidden bg-muted">
-          {/* Discount Badge */}
-          {discount > 0 && (
-            <Badge className="absolute left-3 top-3 z-10 bg-rose-500 hover:bg-rose-500 text-white font-bold">
-              -{discount}%
-            </Badge>
-          )}
+    <Card className="group overflow-hidden transition-shadow hover:shadow-md border-muted/60">
+      {/* ইমেজ সেকশন: aspect-square এর বদলে aspect-[4/3] করে উচ্চতা কমানো হয়েছে */}
+      <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+        {discount > 0 && (
+          <Badge className="absolute left-2 top-2 z-10 bg-rose-500 text-[10px] h-5 px-1.5 font-bold">
+            -{discount}%
+          </Badge>
+        )}
 
-          {/* Wishlist Button */}
-          <button
-            onClick={handleToggleWishlist}
-            disabled={togglingWishlist}
-            className={`absolute right-3 top-3 z-10 rounded-full p-2 shadow-md transition-all cursor-pointer ${
-              wishlisted
-                ? "bg-rose-500 text-white"
-                : "bg-white text-gray-600 hover:bg-rose-50 hover:text-rose-500"
-            } disabled:cursor-not-allowed disabled:opacity-70`} // বোনাস: ডিজেবল অবস্থায় পয়েন্টার অন্যরকম দেখাবে
-          >
-            <Heart className={`h-4 w-4 ${wishlisted ? "fill-white" : ""}`} />
-          </button>
+        <button
+          onClick={handleToggleWishlist}
+          disabled={togglingWishlist}
+          className={`absolute right-2 top-2 z-10 rounded-full p-1.5 shadow-sm transition-all ${
+            wishlisted
+              ? "bg-rose-500 text-white"
+              : "bg-white/80 text-gray-600 hover:bg-white hover:text-rose-500"
+          } disabled:opacity-70`}
+        >
+          <Heart className={`h-3.5 w-3.5 ${wishlisted ? "fill-white" : ""}`} />
+        </button>
 
-          <Image
-            src={
-              product.images[0] ||
-              "https://placehold.co/400x400/e2e8f0/64748b?text=No+Image"
-            }
-            alt={product.title || "Product image"}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover transition-transform group-hover:scale-105"
-          />
-        </div>
+        <Image
+          src={
+            product.images[0] ||
+            "https://placehold.co/400x300/e2e8f0/64748b?text=No+Image"
+          }
+          alt={product.title}
+          fill
+          className="object-cover transition-transform group-hover:scale-105"
+        />
+      </div>
 
-        <Link href={`/products/${product._id}`}>
-          <CardContent className="px-4 pt-3 pb-4">
-            <p className="text-xs font-medium uppercase text-muted-foreground">
-              {product.brand}
+      <Link href={`/products/${product._id}`}>
+        <CardContent className="p-3">
+          {" "}
+          {/* প্যাডিং কমানো হয়েছে */}
+          <p className="text-[10px] font-bold uppercase text-muted-foreground/80 leading-tight">
+            {product.brand}
+          </p>
+          <h3 className="mt-0.5 line-clamp-1 text-sm font-semibold text-foreground">
+            {product.title}
+          </h3>
+          {/* রেটিং সেকশন ছোট করা হয়েছে */}
+          <div className="mt-1 flex items-center gap-1">
+            <div className="flex text-[10px]">
+              {[...Array(5)].map((_, i) => (
+                <span
+                  key={i}
+                  className={
+                    i < Math.floor(product.rating)
+                      ? "text-yellow-400"
+                      : "text-gray-300"
+                  }
+                >
+                  ★
+                </span>
+              ))}
+            </div>
+            <span className="text-[10px] text-muted-foreground">
+              ({product.numReviews})
+            </span>
+          </div>
+          {/* প্রাইস সেকশন */}
+          <div className="mt-1.5 flex items-baseline gap-1.5">
+            <p className="text-base font-bold text-primary">
+              ৳{(product.discountPrice || product.price).toLocaleString()}
             </p>
-            <h3 className="mt-1 line-clamp-2 text-sm font-medium text-foreground">
-              {product.title}
-            </h3>
-
-            {/* Rating */}
-            <div className="mt-2 flex items-center gap-1">
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <span
-                    key={i}
-                    className={`text-sm ${i < Math.floor(product.rating) ? "text-yellow-400" : "text-gray-300"}`}
-                  >
-                    ★
-                  </span>
-                ))}
-              </div>
-              <span className="text-xs text-muted-foreground">
-                ({product.numReviews || 0})
-              </span>
-            </div>
-
-            {/* Price */}
-            <div className="mt-2 flex items-center gap-2">
-              <p className="text-lg font-bold text-primary">
-                ৳{(product.discountPrice || product.price).toLocaleString()}
+            {product.discountPrice && (
+              <p className="text-xs text-muted-foreground line-through opacity-70">
+                ৳{product.price.toLocaleString()}
               </p>
-              {product.discountPrice && (
-                <p className="text-sm text-muted-foreground line-through">
-                  ৳{product.price.toLocaleString()}
-                </p>
-              )}
-            </div>
-
-            <Button
-              className="mt-3 w-full gap-2"
-              size="sm"
-              onClick={handleAddToCart}
-              disabled={adding || product.stock === 0}
-            >
-              {adding ? (
-                <>
-                  <span className="loading loading-spinner loading-xs" />
-                  Adding...
-                </>
-              ) : product.stock === 0 ? (
-                "Out of Stock"
-              ) : (
-                <>
-                  <ShoppingCart className="h-4 w-4" />
-                  Add to Cart
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Link>
-      </Card>
-    </div>
+            )}
+          </div>
+          <Button
+            className="mt-2.5 w-full h-8 text-xs gap-1.5 shadow-none"
+            size="sm"
+            onClick={handleAddToCart}
+            disabled={adding || product.stock === 0}
+          >
+            {adding ? (
+              <span className="loading loading-spinner loading-xs h-3 w-3" />
+            ) : product.stock === 0 ? (
+              "Out of Stock"
+            ) : (
+              <>
+                <ShoppingCart className="h-3.5 w-3.5" />
+                Add to Cart
+              </>
+            )}
+          </Button>
+        </CardContent>
+      </Link>
+    </Card>
   );
 };

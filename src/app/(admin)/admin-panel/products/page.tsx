@@ -131,7 +131,7 @@ export default function AdminProductsPage() {
       </form>
 
       {/* Table */}
-      <div className="rounded-xl border border-border bg-card overflow-hidden">
+      <div className="rounded-xl border border-border bg-card overflow-auto">
         {loading ? (
           <div className="space-y-0">
             {[...Array(5)].map((_, i) => (

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Send, Bot, X } from "lucide-react"; // X আইকন ইমপোর্ট করা হয়েছে
+import { Send, Bot, X } from "lucide-react"; 
 import { chatWithAssistant } from "@/service/ai.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,6 @@ interface Message {
   content: string;
 }
 
-// onClose প্রপস যোগ করা হয়েছে যাতে প্যারেন্ট কম্পোনেন্ট থেকে এটি বন্ধ করা যায়
 export default function ChatBox({ onClose }: { onClose?: () => void }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");

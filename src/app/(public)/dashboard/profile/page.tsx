@@ -17,7 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator"; // toast use korle consistency thake
+import { Separator } from "@/components/ui/separator";
 
 import {
   getMyProfile,
@@ -88,7 +88,6 @@ export default function ProfilePage() {
         address: { street, city, country, zip },
       });
       setProfile(updated);
-      // Session update - name, image, role sync kora
       await update({
         user: {
           name: updated.name,
@@ -96,7 +95,6 @@ export default function ProfilePage() {
           role: updated.role ?? session?.user?.role,
         },
       });
-      // Dashboard layout ke notify kora fresh data load korte
       window.dispatchEvent(new Event("profileUpdated"));
       toast.success("Profile updated successfully");
     } catch (err: unknown) {
@@ -137,7 +135,8 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="space-y-5 max-w-2xl">
+    <div className="space-y-5">
+      {/* Page Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">My Profile</h1>
         <Badge
@@ -148,15 +147,15 @@ export default function ProfilePage() {
         </Badge>
       </div>
 
-      {/* Account Info (OrderCard Style) */}
+      {/* Account Info Header Card */}
       <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
         <CardContent className="p-4">
           <div className="flex items-center gap-4">
-            <div className="relative group">
+            <div className="relative group shrink-0">
               <Avatar className="h-16 w-16 rounded-lg border border-border shadow-sm">
                 <AvatarImage src={avatar || session?.user?.image || ""} />
-                <AvatarFallback className="rounded-lg uppercase font-bold">
-                  {name.slice(0, 2)}
+                <AvatarFallback className="rounded-lg uppercase font-bold bg-primary/10 text-primary">
+                  {name.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <button
@@ -167,11 +166,11 @@ export default function ProfilePage() {
               </button>
             </div>
             <div className="flex-1 min-w-0">
-              <h2 className="font-bold text-sm truncate">{profile?.name}</h2>
+              <h2 className="font-bold text-base truncate">{profile?.name}</h2>
               <p className="text-[11px] font-mono text-muted-foreground truncate">
                 {profile?.email}
               </p>
-              <div className="flex items-center gap-2 mt-1">
+              <div className="flex items-center gap-3 mt-1">
                 <span className="flex items-center gap-1 text-[10px] font-medium text-green-600">
                   <CheckCircle2 className="w-3 h-3" /> Verified Account
                 </span>
@@ -185,159 +184,167 @@ export default function ProfilePage() {
         </CardContent>
       </div>
 
-      {/* Personal Info Form */}
-      <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
-        <div className="px-4 py-3 border-b bg-muted/20 flex items-center gap-2">
-          <User className="w-4 h-4 text-primary" />
-          <h3 className="text-xs font-bold uppercase tracking-tight">
-            Personal Details
-          </h3>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Left Column: Personal Info Form */}
+        <div className="lg:col-span-2 space-y-5">
+          <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
+            <div className="px-4 py-3 border-b bg-muted/20 flex items-center gap-2">
+              <User className="w-4 h-4 text-primary" />
+              <h3 className="text-xs font-bold uppercase tracking-tight">
+                Personal Details
+              </h3>
+            </div>
+            <CardContent className="p-4">
+              <form onSubmit={handleProfileSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase">
+                      Full Name
+                    </label>
+                    <input
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase">
+                      Phone
+                    </label>
+                    <input
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                <Separator className="opacity-50" />
+
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                    Shipping Address
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="sm:col-span-2 space-y-1.5">
+                    <input
+                      placeholder="Street Address"
+                      value={street}
+                      onChange={(e) => setStreet(e.target.value)}
+                      className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none"
+                    />
+                  </div>
+                  <input
+                    placeholder="City"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    className="rounded-md border bg-background px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none"
+                  />
+                  <input
+                    placeholder="ZIP Code"
+                    value={zip}
+                    onChange={(e) => setZip(e.target.value)}
+                    className="rounded-md border bg-background px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none"
+                  />
+                </div>
+
+                <div className="pt-2">
+                  <Button
+                    disabled={savingProfile}
+                    size="sm"
+                    className="gap-2 text-xs font-bold uppercase tracking-wider px-6"
+                  >
+                    {savingProfile ? (
+                      <RefreshCw className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <Save className="w-3 h-3" />
+                    )}
+                    Save Changes
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </div>
         </div>
-        <CardContent className="p-4">
-          <form onSubmit={handleProfileSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-muted-foreground uppercase">
-                  Full Name
-                </label>
-                <input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full rounded-md border bg-background px-3 py-1.5 text-sm focus:ring-1 focus:ring-primary outline-none transition-all"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-muted-foreground uppercase">
-                  Phone
-                </label>
-                <input
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full rounded-md border bg-background px-3 py-1.5 text-sm focus:ring-1 focus:ring-primary outline-none transition-all"
-                />
-              </div>
+
+        {/* Right Column: Security Section */}
+        <div className="lg:col-span-1">
+          <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden h-full">
+            <div className="px-4 py-3 border-b bg-muted/20 flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-primary" />
+              <h3 className="text-xs font-bold uppercase tracking-tight">
+                Security
+              </h3>
             </div>
-
-            <Separator className="opacity-50" />
-
-            <div className="flex items-center gap-2 mb-2">
-              <MapPin className="w-3 h-3 text-muted-foreground" />
-              <span className="text-[11px] font-bold text-muted-foreground uppercase">
-                Shipping Address
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="col-span-2 space-y-1">
+            <CardContent className="p-4">
+              <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                <div className="relative">
+                  <input
+                    type={showCurrent ? "text" : "password"}
+                    placeholder="Current Password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="w-full rounded-md border bg-background px-3 py-2 text-sm pr-10 outline-none focus:ring-1 focus:ring-primary"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrent(!showCurrent)}
+                    className="absolute right-3 top-2.5 text-muted-foreground"
+                  >
+                    {showCurrent ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+                <div className="relative">
+                  <input
+                    type={showNew ? "text" : "password"}
+                    placeholder="New Password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full rounded-md border bg-background px-3 py-2 text-sm pr-10 outline-none focus:ring-1 focus:ring-primary"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNew(!showNew)}
+                    className="absolute right-3 top-2.5 text-muted-foreground"
+                  >
+                    {showNew ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
                 <input
-                  placeholder="Street Address"
-                  value={street}
-                  onChange={(e) => setStreet(e.target.value)}
-                  className="w-full rounded-md border bg-background px-3 py-1.5 text-sm focus:ring-1 focus:ring-primary outline-none"
+                  type="password"
+                  placeholder="Confirm Password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary"
                 />
-              </div>
-              <input
-                placeholder="City"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="rounded-md border bg-background px-3 py-1.5 text-sm outline-none"
-              />
-              <input
-                placeholder="ZIP Code"
-                value={zip}
-                onChange={(e) => setZip(e.target.value)}
-                className="rounded-md border bg-background px-3 py-1.5 text-sm outline-none"
-              />
-            </div>
-
-            <Button
-              disabled={savingProfile}
-              size="sm"
-              className="w-full sm:w-auto gap-2 text-xs"
-            >
-              {savingProfile ? (
-                <RefreshCw className="w-3 h-3 animate-spin" />
-              ) : (
-                <Save className="w-3 h-3" />
-              )}
-              Save Profile
-            </Button>
-          </form>
-        </CardContent>
-      </div>
-
-      {/* Security Section */}
-      <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
-        <div className="px-4 py-3 border-b bg-muted/20 flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-primary" />
-          <h3 className="text-xs font-bold uppercase tracking-tight">
-            Security & Password
-          </h3>
+                <Button
+                  disabled={savingPassword}
+                  variant="outline"
+                  size="sm"
+                  className="w-full gap-2 text-[10px] font-bold uppercase tracking-wider"
+                >
+                  {savingPassword ? (
+                    <RefreshCw className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <ShieldCheck className="w-3 h-3" />
+                  )}
+                  Update Password
+                </Button>
+              </form>
+            </CardContent>
+          </div>
         </div>
-        <CardContent className="p-4">
-          <form onSubmit={handlePasswordSubmit} className="space-y-3 max-w-sm">
-            <div className="relative">
-              <input
-                type={showCurrent ? "text" : "password"}
-                placeholder="Current Password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                className="w-full rounded-md border bg-background px-3 py-1.5 text-sm pr-10 outline-none"
-              />
-              <button
-                type="button"
-                onClick={() => setShowCurrent(!showCurrent)}
-                className="absolute right-3 top-2 text-muted-foreground"
-              >
-                {showCurrent ? (
-                  <EyeOff className="w-3.5 h-3.5" />
-                ) : (
-                  <Eye className="w-3.5 h-3.5" />
-                )}
-              </button>
-            </div>
-            <div className="relative">
-              <input
-                type={showNew ? "text" : "password"}
-                placeholder="New Password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full rounded-md border bg-background px-3 py-1.5 text-sm pr-10 outline-none"
-              />
-              <button
-                type="button"
-                onClick={() => setShowNew(!showNew)}
-                className="absolute right-3 top-2 text-muted-foreground"
-              >
-                {showNew ? (
-                  <EyeOff className="w-3.5 h-3.5" />
-                ) : (
-                  <Eye className="w-3.5 h-3.5" />
-                )}
-              </button>
-            </div>
-            <input
-              type="password"
-              placeholder="Confirm New Password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full rounded-md border bg-background px-3 py-1.5 text-sm outline-none"
-            />
-            <Button
-              disabled={savingPassword}
-              variant="outline"
-              size="sm"
-              className="gap-2 text-xs"
-            >
-              {savingPassword ? (
-                <RefreshCw className="w-3 h-3 animate-spin" />
-              ) : (
-                <ShieldCheck className="w-3 h-3" />
-              )}
-              Update Password
-            </Button>
-          </form>
-        </CardContent>
       </div>
     </div>
   );

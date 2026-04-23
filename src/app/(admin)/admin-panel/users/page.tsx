@@ -207,7 +207,7 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-xl border border-border bg-card">
+      <div className="overflow-auto rounded-xl border border-border bg-card">
         <table className="w-full text-sm">
           <thead className="border-b border-border bg-muted/30">
             <tr>
