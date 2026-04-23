@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
 import { Providers } from "@/components/providers";
 import { Toaster } from "react-hot-toast";
 
@@ -30,13 +29,9 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} antialiased`}
-      >
-        <ThemeProvider attribute="class" defaultTheme="light">
-          <Providers>{children}</Providers>
-          <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
-        </ThemeProvider>
+      <body className={`${geistSans.variable} antialiased`}>
+        <Providers>{children}</Providers>
+        <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
       </body>
     </html>
   );

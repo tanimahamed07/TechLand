@@ -15,7 +15,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/utils/cn";
 
-
 const sidebarLinks = [
   { href: "/dashboard/profile", label: "Profile", icon: User },
   { href: "/dashboard/my-orders", label: "My Orders", icon: Package },

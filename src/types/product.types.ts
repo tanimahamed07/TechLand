@@ -5,6 +5,7 @@ export interface Product {
   description: string;
   price: number;
   discountPrice?: number;
+  discount?: number;
   category: {
     _id: string;
     name: string;
@@ -20,13 +21,15 @@ export interface Product {
   stock: number;
   sold: number;
   rating: number;
-  numReviews: number;
+  numReviews?: number;
+  reviewCount?: number;
   isFeatured: boolean;
   tags: string[];
   specifications?: Record<string, string>;
   createdBy?: {
     _id: string;
     name: string;
+    avatar?: string;
   };
   createdAt: string;
   updatedAt: string;

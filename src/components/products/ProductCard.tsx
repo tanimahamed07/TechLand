@@ -79,7 +79,7 @@ export const ProductCard = ({
   return (
     <Card className="group overflow-hidden transition-shadow hover:shadow-md border-muted/60">
       {/* ইমেজ সেকশন: aspect-square এর বদলে aspect-[4/3] করে উচ্চতা কমানো হয়েছে */}
-      <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+      <div className="relative aspect-4/3 overflow-hidden bg-muted">
         {discount > 0 && (
           <Badge className="absolute left-2 top-2 z-10 bg-rose-500 text-[10px] h-5 px-1.5 font-bold">
             -{discount}%
@@ -105,6 +105,7 @@ export const ProductCard = ({
           }
           alt={product.title}
           fill
+          sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 33vw, 25vw"
           className="object-cover transition-transform group-hover:scale-105"
         />
       </div>
@@ -136,7 +137,7 @@ export const ProductCard = ({
               ))}
             </div>
             <span className="text-[10px] text-muted-foreground">
-              ({product.numReviews})
+              ({product.numReviews || product.reviewCount || 0})
             </span>
           </div>
           {/* প্রাইস সেকশন */}

@@ -1,90 +1,47 @@
-"use client";
-
-import React, { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
 import { getProductById, getAllProducts } from "@/service/product.service";
-import { Product } from "@/types/product.types";
 import { ProductImageGallery } from "@/components/product-details/ProductImageGallery";
 import { ProductInfo } from "@/components/product-details/ProductInfo";
 import { ProductTabs } from "@/components/product-details/ProductTabs";
 import { RelatedProducts } from "@/components/product-details/RelatedProducts";
+import { notFound } from "next/navigation";
+import { Product } from "@/types/product.types";
 
-export default function ProductDetailsPage() {
-  const params = useParams();
-  const productId = params.id as string;
+export default async function ProductDetailsPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id: productId } = await params;
 
-  const [product, setProduct] = useState<Product | null>(null);
-  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // Product fetch করা
-  useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        setLoading(true);
-        const data = await getProductById(productId);
-        setProduct(data);
-
-        // Related products fetch করা (same category)
-        if (data.category?._id) {
-          const relatedData = await getAllProducts({
-            limit: 20, // আরো বেশি products fetch করা
-          });
-          // Filter করে same category এর products নেওয়া (current product বাদে)
-          const filtered = relatedData.data.filter(
-            (p) => p.category._id === data.category._id && p._id !== data._id,
-          );
-          setRelatedProducts(filtered.slice(0, 4));
-          console.log("Related products found:", filtered.length);
-        }
-      } catch (error) {
-        console.error("Failed to fetch product:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (productId) {
-      fetchProduct();
-    }
-  }, [productId]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto max-w-7xl px-4 py-8">
-          <div className="animate-pulse">
-            <div className="mb-4 h-4 w-64 rounded bg-muted" />
-            <div className="grid gap-8 lg:grid-cols-2">
-              <div className="aspect-square rounded-lg bg-muted" />
-              <div className="space-y-4">
-                <div className="h-8 w-3/4 rounded bg-muted" />
-                <div className="h-6 w-1/2 rounded bg-muted" />
-                <div className="h-12 w-1/3 rounded bg-muted" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+  let product;
+  try {
+    product = await getProductById(productId);
+  } catch (error) {
+    console.error("Failed to fetch product:", error);
+    notFound();
   }
 
   if (!product) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-foreground">
-            Product not found
-          </h2>
-          <Link href="/products">
-            <Button className="mt-4">Back to Products</Button>
-          </Link>
-        </div>
-      </div>
-    );
+    notFound();
+  }
+
+  // Related products fetch - backend theke category filter kore anchi
+  let relatedProducts: Product[] = [];
+  if (product.category?.slug) {
+    try {
+      const relatedData = await getAllProducts({
+        category: product.category.slug,
+        limit: 5,
+      });
+      // Shudhu current product bad diye baki products
+      relatedProducts = relatedData.data
+        .filter((p) => p._id !== product._id)
+        .slice(0, 5);
+    } catch (error) {
+      console.error("Failed to fetch related products:", error);
+    }
   }
 
   const discount = product.discountPrice
@@ -142,7 +99,9 @@ export default function ProductDetailsPage() {
         <ProductTabs product={product} productId={productId} />
 
         {/* Related Products */}
-        <RelatedProducts products={relatedProducts} />
+
+          <RelatedProducts products={relatedProducts} />
+
       </div>
     </div>
   );

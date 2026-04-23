@@ -26,15 +26,39 @@ export const getAllProducts = async (params?: {
   }
 
   const url = `${API_URL}/api/v1/products${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
+
+  console.log("Fetching products from:", url);
+
   const response = await fetch(url, {
     cache: "no-store",
   });
 
   if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    console.error("Failed to fetch products:", {
+      url,
+      status: response.status,
+      statusText: response.statusText,
+      error: errorData,
+    });
     throw new Error(`Failed to fetch products: ${response.statusText}`);
   }
 
-  return response.json();
+  const result = await response.json();
+
+  // Normalize discount field to discountPrice for all products
+  if (result.data && Array.isArray(result.data)) {
+    result.data = result.data.map((product: Product) => {
+      if (product.discount && !product.discountPrice) {
+        product.discountPrice = Math.round(
+          product.price * (1 - product.discount / 100),
+        );
+      }
+      return product;
+    });
+  }
+
+  return result;
 };
 
 // ২. ফিচার্ড প্রোডাক্ট নিয়ে আসা
@@ -49,21 +73,51 @@ export const getFeaturedProducts = async (): Promise<ProductsResponse> => {
     );
   }
 
-  return response.json();
+  const result = await response.json();
+
+  // Normalize discount field to discountPrice for all products
+  if (result.data && Array.isArray(result.data)) {
+    result.data = result.data.map((product: Product) => {
+      if (product.discount && !product.discountPrice) {
+        product.discountPrice = Math.round(
+          product.price * (1 - product.discount / 100),
+        );
+      }
+      return product;
+    });
+  }
+
+  return result;
 };
 
 // ৩. নির্দিষ্ট প্রোডাক্ট আইডি দিয়ে নিয়ে আসা
 export const getProductById = async (id: string): Promise<Product> => {
-  const response = await fetch(`${API_URL}/api/v1/products/${id}`, {
+  const url = `${API_URL}/api/v1/products/${id}`;
+  const response = await fetch(url, {
     cache: "no-store",
   });
 
   if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    console.error(`Failed to fetch product from ${url}:`, {
+      status: response.status,
+      statusText: response.statusText,
+      error: errorData,
+    });
     throw new Error(`Failed to fetch product: ${response.statusText}`);
   }
 
   const result = await response.json();
-  return result.data;
+  const product = result.data;
+
+  // Normalize discount field to discountPrice
+  if (product.discount && !product.discountPrice) {
+    product.discountPrice = Math.round(
+      product.price * (1 - product.discount / 100),
+    );
+  }
+
+  return product;
 };
 
 // ৪. ক্যাটাগরি অনুযায়ী প্রোডাক্ট নিয়ে আসা (pagination সহ)
