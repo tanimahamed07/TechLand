@@ -1,33 +1,23 @@
 import { getSession } from "next-auth/react";
+import {
+  GenerateDescriptionPayload,
+  GenerateDescriptionResponse,
+  GenerateTagsPayload,
+  GenerateTagsResponse,
+  ChatPayload,
+  ChatResponse,
+} from "@/types/service.types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001";
 
+// Get auth token for AI operations
 const getAuthToken = async (): Promise<string> => {
   const session = await getSession();
   if (!session?.accessToken) throw new Error("Not authenticated");
   return session.accessToken as string;
 };
 
-export interface GenerateDescriptionPayload {
-  title: string;
-  category: string;
-  brand?: string;
-  specs?: string[];
-}
-
-export interface GenerateDescriptionResponse {
-  success: boolean;
-  message: string;
-  data: { description: string };
-}
-
-export interface GenerateTagsResponse {
-  success: boolean;
-  message: string;
-  data: { tags: string[] };
-}
-
-// AI: Product description generate করা
+// Generate product description using AI
 export const generateDescription = async (
   payload: GenerateDescriptionPayload,
 ): Promise<GenerateDescriptionResponse> => {
@@ -46,11 +36,10 @@ export const generateDescription = async (
   return result;
 };
 
-// AI: Product tags generate করা
-export const generateTags = async (payload: {
-  title: string;
-  category: string;
-}): Promise<GenerateTagsResponse> => {
+// Generate product tags using AI
+export const generateTags = async (
+  payload: GenerateTagsPayload,
+): Promise<GenerateTagsResponse> => {
   const token = await getAuthToken();
   const response = await fetch(`${API_URL}/api/v1/ai/generate-tags`, {
     method: "POST",
@@ -66,29 +55,9 @@ export const generateTags = async (payload: {
   return result;
 };
 
-
-// --- চ্যাটবক্সের জন্য ইন্টারফেস ---
-export interface ChatMessage {
-  role: "user" | "assistant";
-  content: string;
-}
-
-export interface ChatPayload {
-  message: string;
-  history: ChatMessage[];
-}
-
-export interface ChatResponse {
-  success: boolean;
-  message: string;
-  data: {
-    reply: string;
-  };
-}
-
-// AI Assistant-এর সাথে চ্যাট করার জন্য মেইন ফাংশন
+// Chat with AI assistant
 export const chatWithAssistant = async (
-  payload: ChatPayload
+  payload: ChatPayload,
 ): Promise<ChatResponse> => {
   const token = await getAuthToken();
   const response = await fetch(`${API_URL}/api/v1/ai/chat`, {

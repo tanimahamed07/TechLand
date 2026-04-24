@@ -8,7 +8,7 @@ import { toast } from "react-hot-toast";
 import ProductForm, {
   ProductFormValues,
 } from "@/components/admin-panel/products/ProductForm";
-import { adminUpdateProduct } from "@/service/admin.product.service";
+import { adminUpdateProduct } from "@/service/product.service";
 import { getProductById } from "@/service/product.service";
 import type { Product } from "@/types/product.types";
 

@@ -9,13 +9,14 @@ import { getSession } from "next-auth/react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001";
 
+// Get auth token for user operations
 const getAuthToken = async (): Promise<string> => {
   const session = await getSession();
   if (!session?.accessToken) throw new Error("Not authenticated");
   return session.accessToken as string;
 };
 
-// নিজের প্রোফাইল ডাটা দেখা
+// Get current user profile
 export const getMyProfile = async (): Promise<UserProfile> => {
   const token = await getAuthToken();
   const response = await fetch(`${API_URL}/api/v1/users/me`, {
@@ -28,7 +29,7 @@ export const getMyProfile = async (): Promise<UserProfile> => {
   return result.data;
 };
 
-// প্রোফাইল আপডেট করা
+// Update user profile
 export const updateMyProfile = async (
   data: UpdateProfileData,
 ): Promise<UserProfile> => {
@@ -47,7 +48,7 @@ export const updateMyProfile = async (
   return result.data;
 };
 
-// পাসওয়ার্ড পরিবর্তন করা
+// Update user password
 export const updatePassword = async (
   data: UpdatePasswordData,
 ): Promise<UserProfile> => {
@@ -66,7 +67,7 @@ export const updatePassword = async (
   return result.data;
 };
 
-// Admin: সব users দেখা
+// Admin: Get all users with filters
 export const adminGetAllUsers = async (params?: {
   page?: number;
   limit?: number;
@@ -89,7 +90,7 @@ export const adminGetAllUsers = async (params?: {
   return result;
 };
 
-// Super-Admin: User role পরিবর্তন করা
+// Super-Admin: Update user role
 export const adminUpdateUserRole = async (
   userId: string,
   role: string,
@@ -108,7 +109,7 @@ export const adminUpdateUserRole = async (
   return result;
 };
 
-// Super-Admin: নতুন Admin তৈরি করা
+// Super-Admin: Create new admin user
 export const adminCreateAdmin = async (data: {
   name: string;
   email: string;
@@ -127,7 +128,8 @@ export const adminCreateAdmin = async (data: {
   if (!response.ok) throw new Error(result.message || "Failed to create admin");
   return result;
 };
-// Super-Admin: User delete করা
+
+// Super-Admin: Delete user
 export const adminDeleteUser = async (userId: string): Promise<void> => {
   const token = await getAuthToken();
   const response = await fetch(`${API_URL}/api/v1/users/${userId}`, {

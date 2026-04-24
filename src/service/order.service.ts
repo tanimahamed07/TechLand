@@ -7,7 +7,7 @@ import {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001";
 
-// Helper function to get auth token
+// Get auth token for order operations
 const getAuthToken = async (): Promise<string> => {
   const session = await getSession();
   if (!session?.accessToken) {
@@ -16,7 +16,7 @@ const getAuthToken = async (): Promise<string> => {
   return session.accessToken as string;
 };
 
-// ১. সব orders নিয়ে আসা (Get All Orders - user: own orders | admin: all orders)
+// Get all orders (user: own orders | admin: all orders)
 export const getAllOrders = async (
   page = 1,
   limit = 10,
@@ -46,7 +46,7 @@ export const getAllOrders = async (
   return result;
 };
 
-// ২. একটি order এর details নিয়ে আসা (Get Order By ID)
+// Get order details by ID
 export const getOrderById = async (orderId: string): Promise<OrderResponse> => {
   const token = await getAuthToken();
   const response = await fetch(`${API_URL}/api/v1/orders/${orderId}`, {
@@ -62,7 +62,7 @@ export const getOrderById = async (orderId: string): Promise<OrderResponse> => {
   return result;
 };
 
-// ৩. Order status update করা (Update Order Status - Admin only)
+// Update order status (Admin only)
 export const updateOrderStatus = async (
   orderId: string,
   orderStatus: string,
@@ -83,7 +83,7 @@ export const updateOrderStatus = async (
   return result;
 };
 
-// ৪. Order cancel করা (Cancel Order - User only, pending orders)
+// Cancel order (User only, pending orders)
 export const cancelOrder = async (orderId: string): Promise<OrderResponse> => {
   const token = await getAuthToken();
   const response = await fetch(`${API_URL}/api/v1/orders/${orderId}/cancel`, {
@@ -98,7 +98,7 @@ export const cancelOrder = async (orderId: string): Promise<OrderResponse> => {
   return result;
 };
 
-// ৫. Order track করা (Track Order - Public, no auth required)
+// Track order by order number (Public, no auth required)
 export const trackOrder = async (
   orderNumber: string,
 ): Promise<OrderTrackingResponse> => {

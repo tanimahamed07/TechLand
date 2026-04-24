@@ -7,7 +7,7 @@ import {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001";
 
-// Helper function to get auth token
+// Get auth token for payment operations
 const getAuthToken = async (): Promise<string> => {
   const session = await getSession();
   if (!session?.accessToken) {
@@ -23,7 +23,7 @@ export interface CheckoutData {
   deliveryZoneId?: string;
 }
 
-// Create Stripe Checkout Session
+// Create Stripe checkout session
 export const createCheckoutSession = async (
   data: CheckoutData,
 ): Promise<CheckoutSessionResponse> => {
@@ -54,7 +54,7 @@ export const createCheckoutSession = async (
   }
 };
 
-// Verify Payment Status
+// Verify payment status after Stripe redirect
 export const verifyPayment = async (
   sessionId: string,
 ): Promise<PaymentVerifyResponse> => {

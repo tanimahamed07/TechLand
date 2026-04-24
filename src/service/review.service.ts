@@ -9,7 +9,7 @@ import type {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001";
 
-// Helper function to get auth token
+// Get auth token for review operations
 const getAuthToken = async (): Promise<string> => {
   const session = await getSession();
   if (!session?.accessToken) {
@@ -18,7 +18,7 @@ const getAuthToken = async (): Promise<string> => {
   return session.accessToken as string;
 };
 
-// ১. নির্দিষ্ট প্রোডাক্টের রিভিউ নিয়ে আসা (Public - no auth required)
+// Get reviews for specific product (Public - no auth required)
 export const getProductReviews = async (
   productId: string,
   page: number = 1,
@@ -38,7 +38,7 @@ export const getProductReviews = async (
   return response.json();
 };
 
-// ২. নতুন রিভিউ যোগ করা (authentication required)
+// Add new review (Authentication required)
 export const addReview = async (
   reviewData: CreateReviewPayload,
 ): Promise<SingleReviewResponse> => {
@@ -60,7 +60,7 @@ export const addReview = async (
   return response.json();
 };
 
-// ৩. নিজের সব রিভিউ নিয়ে আসা (authentication required)
+// Get current user's reviews (Authentication required)
 export const getMyReviews = async (): Promise<ReviewsResponse> => {
   const token = await getAuthToken();
   const response = await fetch(`${API_URL}/api/v1/reviews/my`, {
@@ -77,7 +77,7 @@ export const getMyReviews = async (): Promise<ReviewsResponse> => {
   return response.json();
 };
 
-// ৪. রিভিউ আপডেট করা (authentication required)
+// Update existing review (Authentication required)
 export const updateReview = async (
   reviewId: string,
   updateData: UpdateReviewPayload,
@@ -100,7 +100,7 @@ export const updateReview = async (
   return response.json();
 };
 
-// ৫. রিভিউ ডিলিট করা (authentication required)
+// Delete review (Authentication required)
 export const deleteReview = async (
   reviewId: string,
 ): Promise<{ success: boolean; message: string }> => {
@@ -120,7 +120,7 @@ export const deleteReview = async (
   return response.json();
 };
 
-// Admin: সব reviews দেখা
+// Admin: Get all reviews with filters
 export const adminGetAllReviews = async (params?: {
   page?: number;
   limit?: number;

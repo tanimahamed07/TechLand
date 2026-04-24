@@ -7,7 +7,7 @@ import { toast } from "react-hot-toast";
 import ProductForm, {
   ProductFormValues,
 } from "@/components/admin-panel/products/ProductForm";
-import { adminCreateProduct } from "@/service/admin.product.service";
+import { adminCreateProduct } from "@/service/product.service";
 
 export default function AddProductPage() {
   const router = useRouter();

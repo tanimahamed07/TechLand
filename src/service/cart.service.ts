@@ -1,9 +1,10 @@
 import { getSession } from "next-auth/react";
 import { ICart } from "@/types/cart.types";
+import { CartResponse } from "@/types/service.types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001";
 
-// Helper function to get auth token
+// Get auth token for cart operations
 const getAuthToken = async (): Promise<string> => {
   const session = await getSession();
   if (!session?.accessToken) {
@@ -12,14 +13,7 @@ const getAuthToken = async (): Promise<string> => {
   return session.accessToken as string;
 };
 
-// API Response Type
-interface CartResponse {
-  success: boolean;
-  message: string;
-  data?: ICart;
-}
-
-// ১. কার্ট দেখা (Get Cart)
+// Get user cart
 export const getCart = async (): Promise<ICart> => {
   const token = await getAuthToken();
   const response = await fetch(`${API_URL}/api/v1/cart`, {
@@ -33,11 +27,11 @@ export const getCart = async (): Promise<ICart> => {
   const result: CartResponse = await response.json();
   if (!response.ok) throw new Error(result.message || "Failed to fetch cart");
 
-  // Empty cart হলে default structure return করা
+  // Return empty cart structure if no data
   return result.data || ({ items: [], totalAmount: 0 } as unknown as ICart);
 };
 
-// ২. কার্টে প্রোডাক্ট যোগ করা (Add to Cart)
+// Add product to cart
 export const addToCart = async (
   productId: string,
   quantity: number = 1,
@@ -58,7 +52,7 @@ export const addToCart = async (
   return result.data!;
 };
 
-// ৩. কার্ট আইটেম আপডেট করা (Update Cart Item Quantity)
+// Update cart item quantity
 export const updateCartItem = async (
   itemId: string,
   quantity: number,
@@ -79,7 +73,7 @@ export const updateCartItem = async (
   return result.data!;
 };
 
-// ৪. কার্ট থেকে আইটেম মুছে ফেলা (Remove Cart Item)
+// Remove item from cart
 export const removeCartItem = async (itemId: string): Promise<ICart> => {
   const token = await getAuthToken();
   const response = await fetch(`${API_URL}/api/v1/cart/${itemId}`, {
@@ -95,7 +89,7 @@ export const removeCartItem = async (itemId: string): Promise<ICart> => {
   return result.data!;
 };
 
-// ৫. পুরো কার্ট খালি করা (Clear Cart)
+// Clear entire cart
 export const clearCart = async (): Promise<void> => {
   const token = await getAuthToken();
   const response = await fetch(`${API_URL}/api/v1/cart`, {

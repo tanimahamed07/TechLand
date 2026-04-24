@@ -15,7 +15,7 @@ const getAuthToken = async (): Promise<string> => {
   return session.accessToken as string;
 };
 
-// ১. সকল ক্যাটাগরি ট্রি আকারে নিয়ে আসা (Main categories with children)
+// Get category tree
 export const getCategoryTree = async (): Promise<CategoryTreeResponse> => {
   const response = await fetch(`${BASE_URL}/tree`, {
     cache: "no-store",
@@ -24,7 +24,7 @@ export const getCategoryTree = async (): Promise<CategoryTreeResponse> => {
   return await response.json();
 };
 
-// ২. সকল ক্যাটাগরির লিস্ট নিয়ে আসা (All categories flat)
+// Get all categories
 export const getAllCategories = async (): Promise<CategoriesResponse> => {
   const response = await fetch(BASE_URL, {
     cache: "no-store",
@@ -33,7 +33,7 @@ export const getAllCategories = async (): Promise<CategoriesResponse> => {
   return await response.json();
 };
 
-// ৩. শুধু মেইন ক্যাটাগরি (যাদের parent নেই)
+// Get main categories only
 export const getMainCategories = async (): Promise<CategoriesResponse> => {
   const response = await fetch(BASE_URL, {
     cache: "no-store",
@@ -41,14 +41,14 @@ export const getMainCategories = async (): Promise<CategoriesResponse> => {
   if (!response.ok) throw new Error("Failed to fetch categories");
   const result: CategoriesResponse = await response.json();
 
-  // Filter করে শুধু main categories return করা (যাদের parentCategory নেই)
+  // Filter main categories (no parent)
   const mainCategories = result.data.filter(
     (cat: Category) => !cat.parentCategory,
   );
   return { ...result, data: mainCategories };
 };
 
-// ৪. নির্দিষ্ট parent এর অধীনে সব subcategories
+// Get subcategories by parent
 export const getSubcategoriesByParent = async (
   parentId: string,
 ): Promise<CategoriesResponse> => {
@@ -58,7 +58,7 @@ export const getSubcategoriesByParent = async (
   if (!response.ok) throw new Error("Failed to fetch categories");
   const result: CategoriesResponse = await response.json();
 
-  // Filter করে নির্দিষ্ট parent এর subcategories return করা
+  // Filter subcategories by parent
   const subcategories = result.data.filter(
     (cat: Category) =>
       typeof cat.parentCategory === "string" && cat.parentCategory === parentId,
@@ -66,7 +66,7 @@ export const getSubcategoriesByParent = async (
   return { ...result, data: subcategories };
 };
 
-// ৫. নির্দিষ্ট আইডি দিয়ে ক্যাটাগরি খুঁজে বের করা
+// Get category by ID
 export const getCategoryById = async (
   id: string,
 ): Promise<SingleCategoryResponse> => {
@@ -77,7 +77,7 @@ export const getCategoryById = async (
   return await response.json();
 };
 
-// Admin: নতুন ক্যাটাগরি তৈরি করা
+// Admin: Create category
 export const adminCreateCategory = async (
   categoryData: Partial<Category>,
 ): Promise<SingleCategoryResponse> => {
@@ -96,7 +96,7 @@ export const adminCreateCategory = async (
   return result;
 };
 
-// Admin: ক্যাটাগরি আপডেট করা
+// Admin: Update category
 export const adminUpdateCategory = async (
   id: string,
   updateData: Partial<Category>,
@@ -116,7 +116,7 @@ export const adminUpdateCategory = async (
   return result;
 };
 
-// Admin: ক্যাটাগরি ডিলিট করা
+// Admin: Delete category
 export const adminDeleteCategory = async (id: string): Promise<void> => {
   const token = await getAuthToken();
   const response = await fetch(`${BASE_URL}/${id}`, {

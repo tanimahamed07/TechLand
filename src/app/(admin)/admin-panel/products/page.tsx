@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   adminGetAllProducts,
   adminDeleteProduct,
-} from "@/service/admin.product.service";
+} from "@/service/product.service";
 import type { Product } from "@/types/product.types";
 import { getValidImageUrl } from "@/utils/imageUtils";
 

@@ -4,8 +4,9 @@ import type {
   RegisterPayload,
 } from "@/types/auth.types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001";
 
+// Register new user account
 export const register = async (
   data: RegisterPayload,
 ): Promise<AuthResponse> => {
@@ -31,6 +32,7 @@ export const register = async (
   }
 };
 
+// Login with email and password
 export const login = async (data: LoginPayload): Promise<AuthResponse> => {
   try {
     const response = await fetch(`${API_URL}/api/v1/auth/login`, {
