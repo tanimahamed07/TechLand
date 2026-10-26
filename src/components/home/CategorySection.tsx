@@ -74,7 +74,6 @@ const categories = [
 
 export default function CategorySection() {
   return (
-    // <></>
     <section className="py-16 bg-base-100">
       <div className="container mx-auto px-6 lg:px-8">
         {/* Header */}

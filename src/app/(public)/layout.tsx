@@ -1,31 +1,37 @@
-import React from "react";
+"use client";
+
+import ChatBox from "@/components/ai/ChatBox";
 import { Navbar } from "@/components/shared/Navbar";
+import React, { useState } from "react";
+import { MessageCircle } from "lucide-react"; // চ্যাট আইকনের জন্য
+import { Button } from "@/components/ui/button";
 import Footer from "@/components/shared/Footer";
 
-import { getCategoryTree } from "@/service/category.service";
-import AIChatWidget from "@/components/ai/AIChatWidget";
-
-const Layout = async ({ children }: { children: React.ReactNode }) => {
-  let initialCategories = [];
-  try {
-    const data = await getCategoryTree();
-    initialCategories = data?.data || [];
-  } catch (error) {
-    console.error("Failed to fetch categories in Layout:", error);
-  }
+const Layout = ({ children }: { children: React.ReactNode }) => {
+  const [isOpen, setIsOpen] = useState(false); // চ্যাটবক্স খোলা না বন্ধ তা ট্র্যাক করবে
 
   return (
     <div className="relative min-h-screen">
-      {/* সার্ভার থেকে ক্যাটাগরি ডাটা পাঠানো হচ্ছে */}
-      <Navbar initialCategories={initialCategories} />
-
+      <Navbar />
       <main>{children}</main>
 
-      {/* ক্লায়েন্ট উইজেট */}
-      <AIChatWidget />
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4">
+        {/* যদি isOpen true হয় তবেই চ্যাটবক্স দেখাবে */}
+        {isOpen && <ChatBox onClose={() => setIsOpen(false)} />}
 
+        {/* যদি চ্যাটবক্স বন্ধ থাকে তবে একটি ফ্লোটিং বাটন দেখাবে */}
+        {!isOpen && (
+          <Button
+            onClick={() => setIsOpen(true)}
+            size="icon"
+            className="w-14 h-14 rounded-full shadow-2xl hover:scale-110 transition-transform"
+          >
+            <MessageCircle className="w-6 h-6" />
+          </Button>
+        )}
+      </div>
       <footer>
-        <Footer />
+        <Footer></Footer>
       </footer>
     </div>
   );

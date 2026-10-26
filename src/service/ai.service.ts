@@ -1,4 +1,4 @@
-import { getSession } from "next-auth/react";
+import { API_URL, getAuthToken } from "@/utils/api.utils";
 import {
   GenerateDescriptionPayload,
   GenerateDescriptionResponse,
@@ -8,14 +8,6 @@ import {
   ChatResponse,
 } from "@/types/service.types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001";
-
-// Get auth token for AI operations
-const getAuthToken = async (): Promise<string> => {
-  const session = await getSession();
-  if (!session?.accessToken) throw new Error("Not authenticated");
-  return session.accessToken as string;
-};
 
 // Generate product description using AI
 export const generateDescription = async (
@@ -30,10 +22,7 @@ export const generateDescription = async (
     },
     body: JSON.stringify(payload),
   });
-  const result: GenerateDescriptionResponse = await response.json();
-  if (!response.ok)
-    throw new Error(result.message || "Failed to generate description");
-  return result;
+  return await response.json();
 };
 
 // Generate product tags using AI
@@ -49,10 +38,7 @@ export const generateTags = async (
     },
     body: JSON.stringify(payload),
   });
-  const result: GenerateTagsResponse = await response.json();
-  if (!response.ok)
-    throw new Error(result.message || "Failed to generate tags");
-  return result;
+  return await response.json();
 };
 
 // Chat with AI assistant
@@ -69,11 +55,5 @@ export const chatWithAssistant = async (
     body: JSON.stringify(payload),
   });
 
-  const result: ChatResponse = await response.json();
-
-  if (!response.ok) {
-    throw new Error(result.message || "Failed to get AI response");
-  }
-
-  return result;
+  return await response.json();
 };

@@ -13,8 +13,6 @@ import {
   LogOut,
   Package,
   Shield,
-  Home,
-  Info,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 
@@ -31,6 +29,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { ThemeToggle } from "../theme-toggle";
 import { getCategoryTree } from "@/service/category.service";
 import { CategoryTree } from "@/types/category.types";
+import { getCart } from "@/service/cart.service";
 import CartSidebar from "../CartSidebar";
 import {
   Sheet,
@@ -44,24 +43,11 @@ import {
   CollapsibleContent,
 } from "@/components/ui/collapsible";
 
-const NAV_LINKS = [
-  { label: "Home", href: "/" },
-  { label: "About", href: "/about" },
-];
-
-interface NavbarProps {
-  initialCategories?: CategoryTree[];
-}
-
-export function Navbar({ initialCategories = [] }: NavbarProps) {
+export function Navbar() {
   const router = useRouter();
   const [openMenu, setOpenMenu] = useState<string | null>(null);
-
-  // Props থেকে সরাসরি ক্যাটাগরি সেট করা হচ্ছে
-  const [categories, setCategories] =
-    useState<CategoryTree[]>(initialCategories);
-  const [loading, setLoading] = useState(initialCategories.length === 0);
-
+  const [categories, setCategories] = useState<CategoryTree[]>([]);
+  const [loading, setLoading] = useState(true);
   const [cartOpen, setCartOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [wishlistCount, setWishlistCount] = useState(0);
@@ -70,14 +56,12 @@ export function Navbar({ initialCategories = [] }: NavbarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const { data: session, status } = useSession();
 
-  // যদি কোনো কারণে সার্ভার থেকে initialCategories না আসে, তবেই ক্লায়েন্ট ফেচ করবে
+  // Fetch categories
   useEffect(() => {
-    if (initialCategories.length > 0) return;
-
     const fetchCategories = async () => {
       try {
         const data = await getCategoryTree();
-        setCategories(data?.data || []);
+        setCategories(data.data || []);
       } catch (error) {
         console.error("Failed to fetch categories:", error);
       } finally {
@@ -85,7 +69,51 @@ export function Navbar({ initialCategories = [] }: NavbarProps) {
       }
     };
     fetchCategories();
-  }, [initialCategories]);
+  }, []);
+
+  // Fetch cart count
+  useEffect(() => {
+    const fetchCartCount = async () => {
+      if (!session?.user) {
+        setCartCount(0);
+        return;
+      }
+      try {
+        const cart = await getCart();
+        const count =
+          cart?.items.reduce((sum, item) => sum + item.quantity, 0) || 0;
+        setCartCount(count);
+      } catch (error) {
+        console.error("Failed to fetch cart count:", error);
+      }
+    };
+    fetchCartCount();
+
+    const handleCartUpdate = () => fetchCartCount();
+    window.addEventListener("cartUpdated", handleCartUpdate);
+    return () => window.removeEventListener("cartUpdated", handleCartUpdate);
+  }, [session]);
+
+  // Fetch wishlist count
+  useEffect(() => {
+    const fetchWishlistCount = async () => {
+      if (!session?.user) {
+        setWishlistCount(0);
+        return;
+      }
+      try {
+        const { getMyWishlist } = await import("@/service/wishlist.service");
+        const result = await getMyWishlist();
+        setWishlistCount(result.data?.length || 0);
+      } catch {
+        /* silent fail */
+      }
+    };
+    fetchWishlistCount();
+    window.addEventListener("wishlistUpdated", fetchWishlistCount);
+    return () =>
+      window.removeEventListener("wishlistUpdated", fetchWishlistCount);
+  }, [session]);
 
   const initials = useMemo(() => {
     const name = session?.user?.name ?? session?.user?.email ?? "User";
@@ -125,19 +153,6 @@ export function Navbar({ initialCategories = [] }: NavbarProps) {
             </div>
             <span className="text-xl font-bold text-foreground">TechLand</span>
           </Link>
-
-          {/* Desktop Primary Nav Links */}
-          <nav className="hidden items-center gap-6 lg:flex shrink-0">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-sm font-medium text-foreground/80 transition-colors hover:text-primary"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
 
           {/* Desktop Search */}
           <div className="hidden flex-1 md:flex md:max-w-xl">
@@ -219,6 +234,8 @@ export function Navbar({ initialCategories = [] }: NavbarProps) {
                     <Link href="/dashboard/my-reviews">My Reviews</Link>
                   </DropdownMenuItem>
 
+                  {/* Role based Admin Panel link */}
+
                   {(session.user.role === "admin" ||
                     session.user.role === "super-admin") && (
                     <DropdownMenuItem
@@ -254,7 +271,7 @@ export function Navbar({ initialCategories = [] }: NavbarProps) {
             )}
           </div>
 
-          {/* Mobile-only Icons & Hamburger */}
+          {/* Mobile-only Icons & Hamburger (Extreme Right) */}
           <div className="flex items-center gap-1 md:hidden">
             <ThemeToggle />
             <Button
@@ -286,6 +303,7 @@ export function Navbar({ initialCategories = [] }: NavbarProps) {
               )}
             </Button>
 
+            {/* Hamburger Menu - Fixed position at the end */}
             <Button
               variant="ghost"
               size="icon"
@@ -309,15 +327,18 @@ export function Navbar({ initialCategories = [] }: NavbarProps) {
               </Link>
               {!loading &&
                 categories.map((category) => (
-                  <div
-                    key={category._id}
-                    className="flex items-center gap-8"
-                    onMouseEnter={() => setOpenMenu(category.name)}
-                    onMouseLeave={() => setOpenMenu(null)}
-                  >
+                  <React.Fragment key={category._id}>
                     <div className="h-4 w-[1px] bg-border" />
-                    <DropdownMenu open={openMenu === category.name}>
-                      <DropdownMenuTrigger className="text-sm font-bold hover:text-primary outline-none">
+                    <DropdownMenu
+                      open={openMenu === category.name}
+                      onOpenChange={(open) =>
+                        setOpenMenu(open ? category.name : null)
+                      }
+                    >
+                      <DropdownMenuTrigger
+                        className="text-sm font-bold hover:text-primary outline-none transition-colors"
+                        onMouseEnter={() => setOpenMenu(category.name)}
+                      >
                         {category.name}
                       </DropdownMenuTrigger>
                       {((category.children?.length ?? 0) > 0 ||
@@ -325,6 +346,7 @@ export function Navbar({ initialCategories = [] }: NavbarProps) {
                         <DropdownMenuContent
                           className="min-w-[450px] p-6"
                           align="start"
+                          onMouseLeave={() => setOpenMenu(null)}
                         >
                           <div className="grid grid-cols-2 gap-8 divide-x">
                             {category.children &&
@@ -368,14 +390,14 @@ export function Navbar({ initialCategories = [] }: NavbarProps) {
                         </DropdownMenuContent>
                       )}
                     </DropdownMenu>
-                  </div>
+                  </React.Fragment>
                 ))}
             </nav>
           </div>
         </div>
       </header>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Drawer (Left side) */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent
           side="left"
@@ -403,27 +425,9 @@ export function Navbar({ initialCategories = [] }: NavbarProps) {
             </div>
           </div>
 
+          {/* Main Content Area - Category Section */}
           <div className="flex-1 overflow-y-auto">
-            <nav className="px-2 pt-4 space-y-1">
-              <Link
-                href="/"
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md hover:bg-muted transition-colors"
-              >
-                <Home className="h-4 w-4" /> Home
-              </Link>
-              <Link
-                href="/about"
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md hover:bg-muted transition-colors"
-              >
-                <Info className="h-4 w-4" /> About
-              </Link>
-            </nav>
-
-            <div className="mx-4 my-3 border-t border-border" />
-
-            <nav className="px-2 pb-4 space-y-1">
+            <nav className="px-2 py-4 space-y-1">
               <p className="px-3 text-[11px] font-bold uppercase text-muted-foreground mb-2">
                 Shop Categories
               </p>
@@ -465,6 +469,7 @@ export function Navbar({ initialCategories = [] }: NavbarProps) {
             </nav>
           </div>
 
+          {/* Account Settings Section - Pushed to Bottom */}
           <div className="mt-auto border-t bg-muted/10">
             {session?.user ? (
               <nav className="px-2 py-4 space-y-1">
@@ -510,6 +515,7 @@ export function Navbar({ initialCategories = [] }: NavbarProps) {
                 </div>
               </nav>
             ) : (
+              /* Non-Logged In Footer */
               <div className="p-4">
                 <div className="grid grid-cols-2 gap-2">
                   <Button size="sm" variant="outline" asChild>

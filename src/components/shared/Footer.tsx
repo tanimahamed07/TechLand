@@ -47,7 +47,9 @@ export default function Footer() {
             </p>
             <div className="flex items-center gap-4">
               <Link
-                href="#"
+                href="https://www.facebook.com/profile.php?id=61593710064224"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-primary transition-colors"
               >
                 <FaFacebook className="w-5 h-5" />
@@ -65,7 +67,9 @@ export default function Footer() {
                 <FaTwitter className="w-5 h-5" />
               </Link>
               <Link
-                href="#"
+                href="https://www.linkedin.com/in/tanim-ahamed/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-primary transition-colors"
               >
                 <FaLinkedin className="w-5 h-5" />
@@ -141,14 +145,6 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/about"
-                  className="text-sm text-muted-foreground hover:text-primary"
-                >
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link
                   href="/products?category=laptops"
                   className="text-sm text-muted-foreground hover:text-primary"
                 >
@@ -178,11 +174,21 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-3 text-sm text-muted-foreground">
                 <Phone className="w-4 h-4 text-primary shrink-0" />
-                +880 1XXX-XXXXXX
+                <a
+                  href="tel:+8801885124569"
+                  className="hover:text-primary transition-colors"
+                >
+                  +880 1885-124569
+                </a>
               </li>
               <li className="flex items-center gap-3 text-sm text-muted-foreground">
                 <Mail className="w-4 h-4 text-primary shrink-0" />
-                hello@techland.com
+                <a
+                  href="mailto:tanimislamt@gmail.com"
+                  className="hover:text-primary transition-colors"
+                >
+                  tanimislamt@gmail.com
+                </a>
               </li>
             </ul>
           </div>

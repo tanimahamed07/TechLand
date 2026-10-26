@@ -15,6 +15,7 @@ import {
   adminUpdateCategory,
   adminDeleteCategory,
 } from "@/service/category.service";
+import { revalidateCategories } from "@/app/actions/revalidate";
 import type { Category } from "@/types/category.types";
 
 interface FormValues {
@@ -98,6 +99,8 @@ export default function AdminCategoriesPage() {
         await adminCreateCategory(payload);
         toast.success("Category created");
       }
+      // Revalidate category cache
+      await revalidateCategories();
       setModal(null);
       fetchCategories();
     } catch (err) {
@@ -116,6 +119,8 @@ export default function AdminCategoriesPage() {
       setDeleting(cat._id);
       await adminDeleteCategory(cat._id);
       toast.success("Category deleted");
+      // Revalidate category cache
+      await revalidateCategories();
       fetchCategories();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to delete");

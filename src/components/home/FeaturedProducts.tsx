@@ -14,7 +14,6 @@ export default function FeaturedProducts() {
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
 
-
   useEffect(() => {
     const fetchFeatured = async () => {
       try {
@@ -22,7 +21,7 @@ export default function FeaturedProducts() {
         setIsError(false);
         console.log("Fetching featured products...");
         const result = await getFeaturedProducts();
-
+        console.log("Featured products result:", result);
         console.log("Featured products data:", result.data);
         console.log("Featured products count:", result.data?.length || 0);
         setProducts(result.data || []);
@@ -96,6 +95,16 @@ export default function FeaturedProducts() {
             <h3 className="text-xl font-bold text-base-content mb-2">
               No featured products found
             </h3>
+            <p className="text-base-content/60 mb-6">
+              Make sure products are marked as featured in admin panel.
+            </p>
+            <div className="text-xs text-base-content/40 bg-base-200 rounded p-4 max-w-md mx-auto">
+              <p>Debug: Fetched {products.length} featured products</p>
+              <p>
+                API URL:{" "}
+                {process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001"}
+              </p>
+            </div>
           </div>
         )}
 

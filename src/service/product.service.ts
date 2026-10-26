@@ -1,4 +1,4 @@
-import { getSession } from "next-auth/react";
+import { API_URL, getAuthToken } from "@/utils/api.utils";
 import {
   Product,
   ProductsResponse,
@@ -9,15 +9,6 @@ import {
   ProductFilters,
   AdminProductFilters,
 } from "@/types/service.types";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001";
-
-// Get auth token for admin operations
-const getAuthToken = async (): Promise<string> => {
-  const session = await getSession();
-  if (!session?.accessToken) throw new Error("Not authenticated");
-  return session.accessToken as string;
-};
 
 // Normalize discount prices
 const normalizeDiscountPrice = (product: Product): Product => {
@@ -48,18 +39,11 @@ export const getAllProducts = async (
   const url = `${API_URL}/api/v1/products${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
 
   const response = await fetch(url, {
-    cache: "no-store",
+    next: {
+      tags: ["products"],
+      revalidate: 3600, // 1 hour
+    },
   });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    console.error("Failed to fetch products:", {
-      url,
-      status: response.status,
-      error: errorData,
-    });
-    throw new Error(`Failed to fetch products: ${response.statusText}`);
-  }
 
   const result = await response.json();
 
@@ -74,14 +58,11 @@ export const getAllProducts = async (
 // Get featured products
 export const getFeaturedProducts = async (): Promise<ProductsResponse> => {
   const response = await fetch(`${API_URL}/api/v1/products/featured`, {
-    cache: "no-store",
+    next: {
+      tags: ["products"],
+      revalidate: 3600, // 1 hour
+    },
   });
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch featured products: ${response.statusText}`,
-    );
-  }
 
   const result = await response.json();
 
@@ -97,17 +78,11 @@ export const getFeaturedProducts = async (): Promise<ProductsResponse> => {
 export const getProductById = async (id: string): Promise<Product> => {
   const url = `${API_URL}/api/v1/products/${id}`;
   const response = await fetch(url, {
-    cache: "no-store",
+    next: {
+      tags: ["products"],
+      revalidate: 3600, // 1 hour
+    },
   });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    console.error(`Failed to fetch product:`, {
-      status: response.status,
-      error: errorData,
-    });
-    throw new Error(`Failed to fetch product: ${response.statusText}`);
-  }
 
   const result = await response.json();
   const product = result.data;
@@ -152,12 +127,10 @@ export const adminGetAllProducts = async (
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
-  const result: ProductsResponse = await response.json();
-  if (!response.ok)
-    throw new Error(result.message || "Failed to fetch products");
-  return result;
+  return await response.json();
 };
 
+// Admin: Create product
 // Admin: Create product
 export const adminCreateProduct = async (
   data: ProductPayload,
@@ -171,12 +144,8 @@ export const adminCreateProduct = async (
     },
     body: JSON.stringify(data),
   });
-  const result: SingleProductResponse = await response.json();
-  if (!response.ok)
-    throw new Error(result.message || "Failed to create product");
-  return result;
+  return await response.json();
 };
-
 // Admin: Update product
 export const adminUpdateProduct = async (
   id: string,
@@ -191,10 +160,7 @@ export const adminUpdateProduct = async (
     },
     body: JSON.stringify(data),
   });
-  const result: SingleProductResponse = await response.json();
-  if (!response.ok)
-    throw new Error(result.message || "Failed to update product");
-  return result;
+  return await response.json();
 };
 
 // Admin: Delete product
@@ -204,8 +170,5 @@ export const adminDeleteProduct = async (id: string): Promise<void> => {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
   });
-  if (!response.ok) {
-    const result = await response.json();
-    throw new Error(result.message || "Failed to delete product");
-  }
+  await response.json();
 };

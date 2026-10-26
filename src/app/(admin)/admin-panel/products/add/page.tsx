@@ -8,6 +8,7 @@ import ProductForm, {
   ProductFormValues,
 } from "@/components/admin-panel/products/ProductForm";
 import { adminCreateProduct } from "@/service/product.service";
+import { revalidateProducts } from "@/app/actions/revalidate";
 
 export default function AddProductPage() {
   const router = useRouter();
@@ -36,6 +37,8 @@ export default function AddProductPage() {
 
     await adminCreateProduct(payload);
     toast.success("Product created successfully!");
+    // Revalidate product cache
+    await revalidateProducts();
     router.push("/admin-panel/products");
   };
 

@@ -1,4 +1,4 @@
-import { getSession } from "next-auth/react";
+import { API_URL, getAuthToken } from "@/utils/api.utils";
 import type {
   CategoryTreeResponse,
   CategoriesResponse,
@@ -6,33 +6,27 @@ import type {
   Category,
 } from "@/types/category.types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001";
 const BASE_URL = `${API_URL}/api/v1/categories`;
 
-const getAuthToken = async (): Promise<string> => {
-  const session = await getSession();
-  if (!session?.accessToken) throw new Error("Not authenticated");
-  return session.accessToken as string;
-};
-
+// Get category tree (cached)
 export const getCategoryTree = async (): Promise<CategoryTreeResponse> => {
   const response = await fetch(`${BASE_URL}/tree`, {
-    cache: "force-cache", // Permanent caching (revalidate time ছাড়া)
     next: {
-      tags: ["category-tree"], // অনলি ম্যানুয়াল tag-based revalidation-এর জন্য
+      tags: ["categories"],
+      revalidate: 3600, // 1 hour
     },
   });
-
-  if (!response.ok) throw new Error("Failed to fetch category tree");
   return await response.json();
 };
 
-// Get all categories
+// Get all categories (cached)
 export const getAllCategories = async (): Promise<CategoriesResponse> => {
   const response = await fetch(BASE_URL, {
-    cache: "no-store",
+    next: {
+      tags: ["categories"],
+      revalidate: 3600, // 1 hour
+    },
   });
-  if (!response.ok) throw new Error("Failed to fetch categories");
   return await response.json();
 };
 
@@ -41,7 +35,6 @@ export const getMainCategories = async (): Promise<CategoriesResponse> => {
   const response = await fetch(BASE_URL, {
     cache: "no-store",
   });
-  if (!response.ok) throw new Error("Failed to fetch categories");
   const result: CategoriesResponse = await response.json();
 
   // Filter main categories (no parent)
@@ -58,7 +51,6 @@ export const getSubcategoriesByParent = async (
   const response = await fetch(BASE_URL, {
     cache: "no-store",
   });
-  if (!response.ok) throw new Error("Failed to fetch categories");
   const result: CategoriesResponse = await response.json();
 
   // Filter subcategories by parent
@@ -76,7 +68,6 @@ export const getCategoryById = async (
   const response = await fetch(`${BASE_URL}/${id}`, {
     cache: "no-store",
   });
-  if (!response.ok) throw new Error("Category not found");
   return await response.json();
 };
 
@@ -93,10 +84,7 @@ export const adminCreateCategory = async (
     },
     body: JSON.stringify(categoryData),
   });
-  const result: SingleCategoryResponse = await response.json();
-  if (!response.ok)
-    throw new Error(result.message || "Failed to create category");
-  return result;
+  return await response.json();
 };
 
 // Admin: Update category
@@ -113,21 +101,14 @@ export const adminUpdateCategory = async (
     },
     body: JSON.stringify(updateData),
   });
-  const result: SingleCategoryResponse = await response.json();
-  if (!response.ok)
-    throw new Error(result.message || "Failed to update category");
-  return result;
+  return await response.json();
 };
 
 // Admin: Delete category
 export const adminDeleteCategory = async (id: string): Promise<void> => {
   const token = await getAuthToken();
-  const response = await fetch(`${BASE_URL}/${id}`, {
+  await fetch(`${BASE_URL}/${id}`, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
   });
-  if (!response.ok) {
-    const result = await response.json();
-    throw new Error(result.message || "Failed to delete category");
-  }
 };

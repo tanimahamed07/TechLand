@@ -9,6 +9,7 @@ import ProductForm, {
   ProductFormValues,
 } from "@/components/admin-panel/products/ProductForm";
 import { adminUpdateProduct } from "@/service/product.service";
+import { revalidateProducts } from "@/app/actions/revalidate";
 import { getProductById } from "@/service/product.service";
 import type { Product } from "@/types/product.types";
 
@@ -70,6 +71,8 @@ export default function EditProductPage({
 
     await adminUpdateProduct(id, payload);
     toast.success("Product updated successfully!");
+    // Revalidate product cache
+    await revalidateProducts();
     router.push("/admin-panel/products");
   };
 

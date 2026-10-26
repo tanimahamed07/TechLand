@@ -1,3 +1,4 @@
+import { API_URL, getAuthToken } from "@/utils/api.utils";
 import {
   UserProfile,
   UserResponse,
@@ -5,16 +6,6 @@ import {
   UpdateProfileData,
   UpdatePasswordData,
 } from "@/types/user.types";
-import { getSession } from "next-auth/react";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001";
-
-// Get auth token for user operations
-const getAuthToken = async (): Promise<string> => {
-  const session = await getSession();
-  if (!session?.accessToken) throw new Error("Not authenticated");
-  return session.accessToken as string;
-};
 
 // Get current user profile
 export const getMyProfile = async (): Promise<UserProfile> => {
@@ -24,8 +15,6 @@ export const getMyProfile = async (): Promise<UserProfile> => {
     cache: "no-store",
   });
   const result: UserResponse = await response.json();
-  if (!response.ok)
-    throw new Error(result.message || "Failed to fetch profile");
   return result.data;
 };
 
@@ -43,8 +32,6 @@ export const updateMyProfile = async (
     body: JSON.stringify(data),
   });
   const result: UserResponse = await response.json();
-  if (!response.ok)
-    throw new Error(result.message || "Failed to update profile");
   return result.data;
 };
 
@@ -62,8 +49,6 @@ export const updatePassword = async (
     body: JSON.stringify(data),
   });
   const result: UserResponse = await response.json();
-  if (!response.ok)
-    throw new Error(result.message || "Failed to update password");
   return result.data;
 };
 
@@ -85,9 +70,7 @@ export const adminGetAllUsers = async (params?: {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
-  const result: UsersResponse = await response.json();
-  if (!response.ok) throw new Error(result.message || "Failed to fetch users");
-  return result;
+  return await response.json();
 };
 
 // Super-Admin: Update user role
@@ -104,9 +87,7 @@ export const adminUpdateUserRole = async (
     },
     body: JSON.stringify({ userId, role }),
   });
-  const result: UserResponse = await response.json();
-  if (!response.ok) throw new Error(result.message || "Failed to update role");
-  return result;
+  return await response.json();
 };
 
 // Super-Admin: Create new admin user
@@ -124,9 +105,7 @@ export const adminCreateAdmin = async (data: {
     },
     body: JSON.stringify({ ...data, role: "admin" }),
   });
-  const result: UserResponse = await response.json();
-  if (!response.ok) throw new Error(result.message || "Failed to create admin");
-  return result;
+  return await response.json();
 };
 
 // Super-Admin: Delete user
@@ -136,8 +115,5 @@ export const adminDeleteUser = async (userId: string): Promise<void> => {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
   });
-  if (!response.ok) {
-    const result = await response.json();
-    throw new Error(result.message || "Failed to delete user");
-  }
+  await response.json();
 };

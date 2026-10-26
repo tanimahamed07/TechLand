@@ -12,6 +12,7 @@ import {
   adminGetAllProducts,
   adminDeleteProduct,
 } from "@/service/product.service";
+import { revalidateProducts } from "@/app/actions/revalidate";
 import type { Product } from "@/types/product.types";
 import { getValidImageUrl } from "@/utils/imageUtils";
 
@@ -78,6 +79,8 @@ export default function AdminProductsPage() {
       setDeleting(id);
       await adminDeleteProduct(id);
       toast.success("Product deleted");
+      // Revalidate product cache
+      await revalidateProducts();
       fetchProducts();
     } catch {
       toast.error("Failed to delete product");

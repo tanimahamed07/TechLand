@@ -10,7 +10,6 @@ export default async function ProductsPage({
   searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
   const params = await searchParams;
-  console.log(">>>>>>>>>>>", params);
 
   const query: {
     page: number;
@@ -67,8 +66,6 @@ export default async function ProductsPage({
   let categories: CategoryTree[] = [];
   let meta: ProductsPageMeta | undefined = undefined;
 
-  console.log("=========>", query);
-
   try {
     const [productsData, categoriesData] = await Promise.all([
       getAllProducts(query),
@@ -85,7 +82,6 @@ export default async function ProductsPage({
 
   // JSX rendering outside try/catch
   return (
-    // <></>
     <ProductsContent
       initialProducts={products}
       initialCategories={categories}

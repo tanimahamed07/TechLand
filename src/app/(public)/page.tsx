@@ -17,12 +17,12 @@ export default function Home() {
         <HeroSection />
         <CategorySection></CategorySection>
         <FeaturedProducts></FeaturedProducts>
-        <StatSection />
-        <WhyTechLand />
-        <TestimonialSection />
-        <NewsletterSection />
-        <FAQSection />
-        <CTASection />
+        <StatSection/>
+        <WhyTechLand/>
+        <TestimonialSection/>
+        <NewsletterSection/>
+        <FAQSection/>
+        <CTASection/>
       </main>
     </div>
   );

@@ -1,20 +1,11 @@
-import { getSession } from "next-auth/react";
+import { API_URL, getAuthToken } from "@/utils/api.utils";
 import {
   OrdersResponse,
   OrderResponse,
   OrderTrackingResponse,
 } from "@/types/order.types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001";
 
-// Get auth token for order operations
-const getAuthToken = async (): Promise<string> => {
-  const session = await getSession();
-  if (!session?.accessToken) {
-    throw new Error("Not authenticated");
-  }
-  return session.accessToken as string;
-};
 
 // Get all orders (user: own orders | admin: all orders)
 export const getAllOrders = async (
@@ -41,9 +32,7 @@ export const getAllOrders = async (
     cache: "no-store",
   });
 
-  const result: OrdersResponse = await response.json();
-  if (!response.ok) throw new Error(result.message || "Failed to fetch orders");
-  return result;
+  return await response.json();
 };
 
 // Get order details by ID
@@ -57,9 +46,7 @@ export const getOrderById = async (orderId: string): Promise<OrderResponse> => {
     cache: "no-store",
   });
 
-  const result: OrderResponse = await response.json();
-  if (!response.ok) throw new Error(result.message || "Failed to fetch order");
-  return result;
+  return await response.json();
 };
 
 // Update order status (Admin only)
@@ -77,10 +64,7 @@ export const updateOrderStatus = async (
     body: JSON.stringify({ orderStatus }),
   });
 
-  const result: OrderResponse = await response.json();
-  if (!response.ok)
-    throw new Error(result.message || "Failed to update order status");
-  return result;
+  return await response.json();
 };
 
 // Cancel order (User only, pending orders)
@@ -93,9 +77,7 @@ export const cancelOrder = async (orderId: string): Promise<OrderResponse> => {
     },
   });
 
-  const result: OrderResponse = await response.json();
-  if (!response.ok) throw new Error(result.message || "Failed to cancel order");
-  return result;
+  return await response.json();
 };
 
 // Track order by order number (Public, no auth required)
@@ -110,7 +92,5 @@ export const trackOrder = async (
     },
   );
 
-  const result: OrderTrackingResponse = await response.json();
-  if (!response.ok) throw new Error(result.message || "Failed to track order");
-  return result;
+  return await response.json();
 };

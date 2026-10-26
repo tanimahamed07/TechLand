@@ -1,4 +1,4 @@
-import { getSession } from "next-auth/react";
+import { API_URL, getAuthToken } from "@/utils/api.utils";
 import type {
   Review,
   ReviewsResponse,
@@ -6,17 +6,6 @@ import type {
   UpdateReviewPayload,
   SingleReviewResponse,
 } from "@/types/review.types";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001";
-
-// Get auth token for review operations
-const getAuthToken = async (): Promise<string> => {
-  const session = await getSession();
-  if (!session?.accessToken) {
-    throw new Error("Not authenticated");
-  }
-  return session.accessToken as string;
-};
 
 // Get reviews for specific product (Public - no auth required)
 export const getProductReviews = async (
@@ -30,10 +19,6 @@ export const getProductReviews = async (
       cache: "no-store",
     },
   );
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch reviews: ${response.statusText}`);
-  }
 
   return response.json();
 };
@@ -52,11 +37,6 @@ export const addReview = async (
     body: JSON.stringify(reviewData),
   });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to add review");
-  }
-
   return response.json();
 };
 
@@ -69,10 +49,6 @@ export const getMyReviews = async (): Promise<ReviewsResponse> => {
     },
     cache: "no-store",
   });
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch your reviews");
-  }
 
   return response.json();
 };
@@ -92,11 +68,6 @@ export const updateReview = async (
     body: JSON.stringify(updateData),
   });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to update review");
-  }
-
   return response.json();
 };
 
@@ -111,11 +82,6 @@ export const deleteReview = async (
       Authorization: `Bearer ${token}`,
     },
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to delete review");
-  }
 
   return response.json();
 };
@@ -136,7 +102,6 @@ export const adminGetAllReviews = async (params?: {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
-  if (!response.ok) throw new Error("Failed to fetch reviews");
   return response.json();
 };
 
